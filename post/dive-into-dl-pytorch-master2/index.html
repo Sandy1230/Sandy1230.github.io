@@ -1,93 +1,102 @@
+<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Dive-into-DL-PyTorch-master | Gridea</title>
-<meta name="description" content="温故而知新" />
-<link rel="shortcut icon" href="https://Sandy1230.github.io/favicon.ico?v=1581432755859">
+    <meta charset="utf-8" >
+
+<title>Dive-into-DL-PyTorch-master | </title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://Sandy1230.github.io/favicon.ico?v=1581433428473">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://Sandy1230.github.io/styles/main.css">
 
+
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
 
 
 
   </head>
   <body>
-    <div class="main">
-      <div class="main-content">
-        <div class="site-header">
-  <a href="https://Sandy1230.github.io">
-  <img class="avatar" src="https://Sandy1230.github.io/images/avatar.png?v=1581432755859" alt="">
-  </a>
-  <h1 class="site-title">
-    Gridea
-  </h1>
-  <p class="site-description">
-    温故而知新
-  </p>
-  <div class="menu-container">
-    
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://Sandy1230.github.io">
+        <img src="https://Sandy1230.github.io/images/avatar.png?v=1581433428473" class="site-logo">
+        <h1 class="site-title"></h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
       
-        <a href="/" class="menu">
-          首页
-        </a>
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
       
-    
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
       
-        <a href="/archives" class="menu">
-          归档
-        </a>
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
       
-    
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
       
-        <a href="/tags" class="menu">
-          标签
-        </a>
-      
-    
-      
-        <a href="/post/about" class="menu">
-          关于
-        </a>
-      
-    
+    </div>
   </div>
-  <div class="social-container">
-    
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
       
-    
+        
       
-    
+        
       
-    
+        
       
-    
+        
       
-    
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+       | <a class="rss" href="https://Sandy1230.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
   </div>
 </div>
 
-        <div class="post-detail">
-          <article class="post">
-            <h2 class="post-title">
-              Dive-into-DL-PyTorch-master
-            </h2>
-            <div class="post-info">
-              <span>
-                2020-02-11
-              </span>
-              <span>
-                3 min read
-              </span>
-              
-            </div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Dive-into-DL-PyTorch-master</h2>
+            <div class="post-date">2020-02-11</div>
             
-            <div class="post-content-wrapper">
-              <div class="post-content">
-                <h1 id="线性回归">线性回归</h1>
+            <div class="post-content">
+              <h1 id="线性回归">线性回归</h1>
 <p>@(示例笔记本)[马克飞象|帮助|Markdown]</p>
 <p><strong>马克飞象</strong>是一款专为印象笔记（Evernote）打造的Markdown编辑器，通过精心的设计与技术实现，配合印象笔记强大的存储和同步功能，带来前所未有的书写体验。特点概述：</p>
 <ul>
@@ -172,9 +181,9 @@ Bob--&gt;Alice: I am good thanks!
 <h3 id="复选框">复选框</h3>
 <p>使用 <code>- [ ]</code> 和 <code>- [x]</code> 语法可以创建复选框，实现 todo-list 等功能。例如：</p>
 <ul class="contains-task-list">
-<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-9947180"><label class="task-list-item-label" for="task-item-9947180"> 已完成事项</label></li>
-<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox" id="task-item-384315"><label class="task-list-item-label" for="task-item-384315"> 待办事项1</label></li>
-<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox" id="task-item-6038314"><label class="task-list-item-label" for="task-item-6038314"> 待办事项2</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-1612280"><label class="task-list-item-label" for="task-item-1612280"> 已完成事项</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox" id="task-item-6759951"><label class="task-list-item-label" for="task-item-6759951"> 待办事项1</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox" id="task-item-6752146"><label class="task-list-item-label" for="task-item-6752146"> 待办事项2</label></li>
 </ul>
 <blockquote>
 <p><strong>注意：<strong>目前支持尚不完全，在印象笔记中勾选复选框是无效、不能同步的，所以必须在</strong>马克飞象</strong>中修改 Markdown 原文才可生效。下个版本将会全面支持。</p>
@@ -231,107 +240,46 @@ Bob--&gt;Alice: I am good thanks!
 </ol>
 </section>
 
-              </div>
-              <div class="toc-container">
-                <ul class="markdownIt-TOC">
-<li><a href="#%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92">线性回归</a>
-<ul>
-<li><a href="#markdown%E7%AE%80%E4%BB%8B">Markdown简介</a>
-<ul>
-<li><a href="#%E4%BB%A3%E7%A0%81%E5%9D%97">代码块</a></li>
-<li><a href="#latex-%E5%85%AC%E5%BC%8F">LaTeX 公式</a></li>
-<li><a href="#%E8%A1%A8%E6%A0%BC">表格</a></li>
-<li><a href="#%E6%B5%81%E7%A8%8B%E5%9B%BE">流程图</a></li>
-<li><a href="#%E5%A4%8D%E9%80%89%E6%A1%86">复选框</a></li>
-</ul>
-</li>
-<li><a href="#%E5%8D%B0%E8%B1%A1%E7%AC%94%E8%AE%B0%E7%9B%B8%E5%85%B3">印象笔记相关</a>
-<ul>
-<li><a href="#%E7%AC%94%E8%AE%B0%E6%9C%AC%E5%92%8C%E6%A0%87%E7%AD%BE">笔记本和标签</a></li>
-<li><a href="#%E7%AC%94%E8%AE%B0%E6%A0%87%E9%A2%98">笔记标题</a></li>
-<li><a href="#%E5%BF%AB%E6%8D%B7%E7%BC%96%E8%BE%91">快捷编辑</a></li>
-<li><a href="#%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5">数据同步</a></li>
-<li><a href="#%E7%A6%BB%E7%BA%BF%E5%AD%98%E5%82%A8">离线存储</a></li>
-</ul>
-</li>
-<li><a href="#%E7%BC%96%E8%BE%91%E5%99%A8%E7%9B%B8%E5%85%B3">编辑器相关</a>
-<ul>
-<li><a href="#%E8%AE%BE%E7%BD%AE">设置</a></li>
-<li><a href="#%E5%BF%AB%E6%8D%B7%E9%94%AE">快捷键</a></li>
-</ul>
-</li>
-<li><a href="#%E5%85%B3%E4%BA%8E%E6%94%B6%E8%B4%B9">关于收费</a></li>
-<li><a href="#%E5%8F%8D%E9%A6%88%E4%B8%8E%E5%BB%BA%E8%AE%AE">反馈与建议</a></li>
-</ul>
-</li>
-</ul>
-
-              </div>
             </div>
-          </article>
-        </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://Sandy1230.github.io/post/dive-into-dl-pytorch-master">
+                  <h3 class="post-title">
+                    Dive-into-DL-PyTorch-master
+                  </h3>
+                </a>
+              </div>
+            
 
-        
-          <div class="next-post">
-            <div class="next">下一篇</div>
-            <a href="https://Sandy1230.github.io/post/dive-into-dl-pytorch-master">
-              <h3 class="post-title">
-                Dive-into-DL-PyTorch-master
-              </h3>
-            </a>
+            
+
           </div>
-        
 
-        
+        </div>
+      </div>
+    </div>
 
-        <div class="site-footer">
-  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | 
-  <a class="rss" href="https://Sandy1230.github.io/atom.xml" target="_blank">RSS</a>
-</div>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
 
-<script>
-  hljs.initHighlightingOnLoad()
+<script type="application/javascript">
 
-  let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+AOS.init();
 
-  // This should probably be throttled.
-  // Especially because it triggers during smooth scrolling.
-  // https://lodash.com/docs/4.17.10#throttle
-  // You could do like...
-  // window.addEventListener("scroll", () => {
-  //    _.throttle(doThatStuff, 100);
-  // });
-  // Only not doing it here to keep this Pen dependency-free.
+hljs.initHighlightingOnLoad()
 
-  window.addEventListener("scroll", event => {
-    let fromTop = window.scrollY;
-
-    mainNavLinks.forEach((link, index) => {
-      let section = document.getElementById(decodeURI(link.hash).substring(1));
-      let nextSection = null
-      if (mainNavLinks[index + 1]) {
-        nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
-      }
-      console.log('section.offsetHeight', section.offsetHeight);
-      if (section.offsetTop <= fromTop) {
-        if (nextSection) {
-          if (nextSection.offsetTop > fromTop) {
-            link.classList.add("current");
-          } else {
-            link.classList.remove("current");    
-          }
-        } else {
-          link.classList.add("current");
-        }
-      } else {
-        link.classList.remove("current");
-      }
-    });
-  });
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
 
 </script>
 
-      </div>
-    </div>
+
+
+
   </body>
 </html>
