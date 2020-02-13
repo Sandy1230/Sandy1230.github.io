@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://Sandy1230.github.io</id>
     <title>Aaron&apos;s Blog</title>
-    <updated>2020-02-13T13:47:46.834Z</updated>
+    <updated>2020-02-13T13:48:20.817Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://Sandy1230.github.io"/>
     <link rel="self" href="https://Sandy1230.github.io/atom.xml"/>
@@ -137,8 +137,8 @@
 </ul>
 <p>To do list:</p>
 <ul class="contains-task-list">
-<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-8125297"><label class="task-list-item-label" for="task-item-8125297"> 线性回归笔记</label></li>
-<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox" id="task-item-1889477"><label class="task-list-item-label" for="task-item-1889477"> 代码实践</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-9821761"><label class="task-list-item-label" for="task-item-9821761"> 线性回归笔记</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox" id="task-item-7419362"><label class="task-list-item-label" for="task-item-7419362"> 代码实践</label></li>
 </ul>
 ]]></content>
     </entry>
