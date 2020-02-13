@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://Sandy1230.github.io</id>
     <title>Aaron&apos;s Blog</title>
-    <updated>2020-02-13T14:15:39.656Z</updated>
+    <updated>2020-02-13T14:17:56.300Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://Sandy1230.github.io"/>
     <link rel="self" href="https://Sandy1230.github.io/atom.xml"/>
@@ -87,8 +87,7 @@
         <link href="https://Sandy1230.github.io/post/xian-xing-hui-gui">
         </link>
         <updated>2020-02-12T06:42:28.000Z</updated>
-        <content type="html"><![CDATA[<h1 id="线性回归">线性回归</h1>
-<p>@(Aaron)[机器学习 | 线性回归]</p>
+        <content type="html"><![CDATA[<p>@(Aaron)[机器学习 | 线性回归]</p>
 <p><strong>主要内容包括：</strong></p>
 <ul>
 <li><strong>线性回归的基本要素</strong></li>
@@ -131,8 +130,8 @@
 </ul>
 <p>To do list:</p>
 <ul class="contains-task-list">
-<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-5776726"><label class="task-list-item-label" for="task-item-5776726"> 线性回归笔记</label></li>
-<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox" id="task-item-9007572"><label class="task-list-item-label" for="task-item-9007572"> 代码实践</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-6119451"><label class="task-list-item-label" for="task-item-6119451"> 线性回归笔记</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox" id="task-item-3658703"><label class="task-list-item-label" for="task-item-3658703"> 代码实践</label></li>
 </ul>
 ]]></content>
     </entry>
