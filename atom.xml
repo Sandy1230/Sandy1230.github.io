@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://Sandy1230.github.io</id>
     <title>Aaron&apos;s Blog</title>
-    <updated>2020-02-14T09:17:06.004Z</updated>
+    <updated>2020-02-14T09:22:50.372Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://Sandy1230.github.io"/>
     <link rel="self" href="https://Sandy1230.github.io/atom.xml"/>
@@ -43,7 +43,7 @@
 </annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.40003em;vertical-align:-0.95003em;"></span><span class="mop">min</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.37144em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">∥</span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03704em;">y</span></span></span><span class="mord">∥</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">1</span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03704em;">g</span></span></span></span></span></span></span></p>
 <p>的<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>L</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">L_{2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>范数不超过<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">θ</span></span></span></span>。</p>
 <h2 id="代码实践">代码实践</h2>
-<p><strong>参考：https://github.com/Sandy1230/Dive-into-DL-PyTorch-master</strong></p>
+<p><strong>参考：<a href=""></a>https://github.com/Sandy1230/Dive-into-DL-PyTorch-master</strong></p>
 ]]></content>
     </entry>
     <entry>
@@ -157,7 +157,7 @@ xyplot(x, x.grad, 'grad of tanh')
 <p>###图像分类数据集（Fashion-MNIST）<br>
 Fashion-MNIST是一个多类图像分类数据集。它将在后面被多次使用，以方便我们观察比较算法之间在模型精度和计算效率上的区别。图像分类数据集中最常用的是手写数字识别数据集MNIST[1]。但大部分模型在MNIST上的分类精度都超过了95%。为了更直观地观察算法之间的差异，我们将使用一个图像内容更加复杂的数据集Fashion-MNIST[2]。</p>
 <h2 id="使用多层感知机图像分类的从零开始的实现及pytorch重新实现">使用多层感知机图像分类的从零开始的实现及pytorch重新实现</h2>
-<p><strong>参考：https://github.com/Sandy1230/Dive-into-DL-PyTorch-master</strong></p>
+<p><strong>参考：<a href=""></a>https://github.com/Sandy1230/Dive-into-DL-PyTorch-master</strong></p>
 ]]></content>
     </entry>
     <entry>
@@ -227,7 +227,7 @@ Fashion-MNIST是一个多类图像分类数据集。它将在后面被多次使�
 <h3 id="模型训练和预测">模型训练和预测</h3>
 <p>  在训练好softmax回归模型后，给定任一样本特征，就可以预测每个输出类别的概率。通常，我们把预测概率最大的类别作为输出类别。如果它与真实类别（标签）一致，说明这次预测是正确的。我们用准确率（accuracy）来评价模型的表现。它等于正确预测数量与总预测数量之比。</p>
 <h2 id="softmax回归模型的从零开始实现及使用pytorch重新实现softmax回归模型">softmax回归模型的从零开始实现及使用pytorch重新实现softmax回归模型</h2>
-<p>  <strong>参考：https://github.com/Sandy1230/Dive-into-DL-PyTorch-master</strong></p>
+<p>  <strong>参考：<a href=""></a>https://github.com/Sandy1230/Dive-into-DL-PyTorch-master</strong></p>
 ]]></content>
     </entry>
     <entry>
@@ -273,16 +273,14 @@ Fashion-MNIST是一个多类图像分类数据集。它将在后面被多次使�
 <p>  学习率: 代表在每次优化中，能够学习的步长的大小<br>
   批量大小: 是小批量计算中的批量大小batch size</p>
 <p>  总结一下，优化函数的有以下两个步骤：</p>
-<ul>
-<li><strong>初始化模型参数，一般来说使用随机初始化；</strong></li>
-<li><strong>我们在数据上迭代多次，通过在负梯度方向移动参数来更新每个参数。</strong></li>
-</ul>
+<p>  - <strong>初始化模型参数，一般来说使用随机初始化；</strong><br>
+  - <strong>我们在数据上迭代多次，通过在负梯度方向移动参数来更新每个参数。</strong></p>
 <h2 id="线性回归模型从零开始的实现">线性回归模型从零开始的实现</h2>
-<p>  参考：https://github.com/Sandy1230/Dive-into-DL-PyTorch-master</p>
+<p><strong>  参考：<a href=""></a>https://github.com/Sandy1230/Dive-into-DL-PyTorch-master</strong></p>
 <p>To do list:</p>
 <ul class="contains-task-list">
-<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-8971196"><label class="task-list-item-label" for="task-item-8971196"> 线性回归笔记</label></li>
-<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-2704883"><label class="task-list-item-label" for="task-item-2704883"> 代码实践</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-815169"><label class="task-list-item-label" for="task-item-815169"> 线性回归笔记</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-6785118"><label class="task-list-item-label" for="task-item-6785118"> 代码实践</label></li>
 </ul>
 ]]></content>
     </entry>
