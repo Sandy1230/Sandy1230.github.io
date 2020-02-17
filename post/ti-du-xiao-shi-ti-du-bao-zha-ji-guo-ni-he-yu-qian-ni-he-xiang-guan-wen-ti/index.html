@@ -4,7 +4,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Aaron&#39;s Blog</title>
 <meta name="description" content="此心安处是吾乡" />
-<link rel="shortcut icon" href="https://Sandy1230.github.io/favicon.ico?v=1581919131573">
+<link rel="shortcut icon" href="https://Sandy1230.github.io/favicon.ico?v=1581919196976">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
@@ -23,7 +23,7 @@
       <div class="flex lg:block p-4 lg:px-0 items-center fixed lg:static lg:block top-0 right-0 left-0 bg-white z-50">
         <i class="ri-menu-2-line lg:mt-4 text-2xl cursor-pointer animated fadeIn" onclick="openMenu()"></i>
         <a href="https://Sandy1230.github.io">
-          <img class="animated fadeInLeft avatar rounded-lg mx-4 lg:mt-32 lg:mx-0 mt-0 lg:w-24 lg:h-24 w-12 w-12" src="https://Sandy1230.github.io/images/avatar.png?v=1581919131573" alt="">
+          <img class="animated fadeInLeft avatar rounded-lg mx-4 lg:mt-32 lg:mx-0 mt-0 lg:w-24 lg:h-24 w-12 w-12" src="https://Sandy1230.github.io/images/avatar.png?v=1581919196976" alt="">
         </a>
         <h1 class="animated fadeInLeft lg:text-4xl font-extrabold lg:mt-8 mt-0 text-xl" style="animation-delay: 0.2s">Aaron&#39;s Blog</h1>
       </div>
@@ -207,43 +207,9 @@ c-8,0,-12,-0.7,-12,-2z M1001 80H400000v40H1014z'/></svg></span></span></span><sp
 <h3 id="协变量偏移">协变量偏移</h3>
 <p>  这里我们假设，虽然输入的分布可能随时间而改变，但是标记函数，即条件分布P（y∣x）不会改变。虽然这个问题容易理解，但在实践中也容易忽视。</p>
 <p>  想想区分猫和狗的一个例子。我们的训练数据使用的是猫和狗的真实的照片，但是在测试时，我们被要求对猫和狗的卡通图片进行分类。</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:center">cat</th>
-<th style="text-align:center">cat</th>
-<th style="text-align:left">dog</th>
-<th style="text-align:center">dog</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:center"><img src="https://Sandy1230.github.io/post-images/1581918957375.jpg" alt=""></td>
-<td style="text-align:center"></td>
-<td style="text-align:left"></td>
-<td style="text-align:center"></td>
-</tr>
-</tbody>
-</table>
+<p><img src="https://Sandy1230.github.io/post-images/1581919190292.PNG" alt=""></p>
 <p>  测试数据：</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:center">cat</th>
-<th style="text-align:center">cat</th>
-<th style="text-align:center">dog</th>
-<th style="text-align:center">dog</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:center"><img src="https://Sandy1230.github.io/post-images/1581918996615.png" alt=""></td>
-<td style="text-align:center"></td>
-<td style="text-align:center"></td>
-<td style="text-align:center"></td>
-</tr>
-</tbody>
-</table>
+<p><img src="https://Sandy1230.github.io/post-images/1581919195488.PNG" alt=""></p>
 <p>  显然，这不太可能奏效。训练集由照片组成，而测试集只包含卡通。在一个看起来与测试集有着本质不同的数据集上进行训练，而不考虑如何适应新的情况，这是不是一个好主意。不幸的是，这是一个非常常见的陷阱。</p>
 <p>  统计学家称这种协变量变化是因为问题的根源在于特征分布的变化（即协变量的变化）。数学上，我们可以说P（x）改变了，但P（y∣x）保持不变。尽管它的有用性并不局限于此，当我们认为x导致y时，协变量移位通常是正确的假设。</p>
 <h3 id="标签偏移">标签偏移</h3>
