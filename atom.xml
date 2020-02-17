@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://Sandy1230.github.io</id>
     <title>Aaron&apos;s Blog</title>
-    <updated>2020-02-17T03:32:57.367Z</updated>
+    <updated>2020-02-17T03:37:07.602Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://Sandy1230.github.io"/>
     <link rel="self" href="https://Sandy1230.github.io/atom.xml"/>
@@ -176,8 +176,8 @@ train_data = pd.read_csv(&quot;/home/kesci/input/houseprices2807/house-prices-ad
 <p>  让我们来查看前4个样本的前4个特征、后2个特征和标签（SalePrice）：</p>
 <pre><code class="language-python">train_data.iloc[0:4, [0, 1, 2, 3, -3, -2, -1]]
 </code></pre>
-<p>| Id|MSSubClass|MSZoning|LotFrontage|SaleType|SaleCondition|SalePrice|	<br>
-| :| ----:| :--: | --------:| ----:| ----:|<br>
+<p>| Id|MSSubClass|MSZoning|LotFrontage|SaleType|SaleCondition|SalePrice|<br>
+| :| :----:| :--: | :--------:| :----:| :----:| :----:|<br>
 | 1| 60 |RL|62.0|WD|Normal|208500|<br>
 | 2| 20 |RL|80.0|WD|Normal|181500|<br>
 | 3| 60 |RL|68.0|WD|Normal|223500|<br>
@@ -859,8 +859,8 @@ Fashion-MNIST是一个多类图像分类数据集。它将在后面被多次使�
 <p><strong>  参考：<a href=""></a>https://github.com/Sandy1230/Dive-into-DL-PyTorch-master</strong></p>
 <p>To do list:</p>
 <ul class="contains-task-list">
-<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-6386288"><label class="task-list-item-label" for="task-item-6386288"> 线性回归笔记</label></li>
-<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-5728308"><label class="task-list-item-label" for="task-item-5728308"> 代码实践</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-953440"><label class="task-list-item-label" for="task-item-953440"> 线性回归笔记</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-8678563"><label class="task-list-item-label" for="task-item-8678563"> 代码实践</label></li>
 </ul>
 ]]></content>
     </entry>
