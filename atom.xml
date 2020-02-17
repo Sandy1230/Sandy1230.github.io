@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://Sandy1230.github.io</id>
     <title>Aaron&apos;s Blog</title>
-    <updated>2020-02-17T12:09:32.832Z</updated>
+    <updated>2020-02-17T12:45:32.985Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://Sandy1230.github.io"/>
     <link rel="self" href="https://Sandy1230.github.io/atom.xml"/>
@@ -1247,8 +1247,8 @@ Fashion-MNIST是一个多类图像分类数据集。它将在后面被多次使�
 <p><strong>  参考：<a href=""></a>https://github.com/Sandy1230/Dive-into-DL-PyTorch-master</strong></p>
 <p>To do list:</p>
 <ul class="contains-task-list">
-<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-1615116"><label class="task-list-item-label" for="task-item-1615116"> 线性回归笔记</label></li>
-<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-9428861"><label class="task-list-item-label" for="task-item-9428861"> 代码实践</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-5481554"><label class="task-list-item-label" for="task-item-5481554"> 线性回归笔记</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-2914138"><label class="task-list-item-label" for="task-item-2914138"> 代码实践</label></li>
 </ul>
 ]]></content>
     </entry>
