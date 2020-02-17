@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://Sandy1230.github.io</id>
     <title>Aaron&apos;s Blog</title>
-    <updated>2020-02-17T04:06:00.361Z</updated>
+    <updated>2020-02-17T04:10:18.168Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://Sandy1230.github.io"/>
     <link rel="self" href="https://Sandy1230.github.io/atom.xml"/>
@@ -108,24 +108,6 @@ c-8,0,-12,-0.7,-12,-2z M1001 80H400000v40H1014z'/></svg></span></span></span><sp
 </tr>
 </thead>
 <tbody>
-<tr>
-<td style="text-align:center"><img src="https://Sandy1230.github.io/post-images/1581912223580.jpg" alt=""></td>
-<td style="text-align:center"></td>
-<td style="text-align:center"></td>
-<td style="text-align:center"></td>
-</tr>
-<tr>
-<td style="text-align:center"><img src="https://Sandy1230.github.io/post-images/1581912239185.jpg" alt=""></td>
-<td style="text-align:center"></td>
-<td style="text-align:center"></td>
-<td style="text-align:center"></td>
-</tr>
-<tr>
-<td style="text-align:center"><img src="https://Sandy1230.github.io/post-images/1581912257980.jpg" alt=""></td>
-<td style="text-align:center"></td>
-<td style="text-align:center"></td>
-<td style="text-align:center"></td>
-</tr>
 <tr>
 <td style="text-align:center"><img src="https://Sandy1230.github.io/post-images/1581912268975.jpg" alt=""></td>
 <td style="text-align:center"></td>
@@ -876,8 +858,8 @@ Fashion-MNIST是一个多类图像分类数据集。它将在后面被多次使�
 <p><strong>  参考：<a href=""></a>https://github.com/Sandy1230/Dive-into-DL-PyTorch-master</strong></p>
 <p>To do list:</p>
 <ul class="contains-task-list">
-<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-1631839"><label class="task-list-item-label" for="task-item-1631839"> 线性回归笔记</label></li>
-<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-7314679"><label class="task-list-item-label" for="task-item-7314679"> 代码实践</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-384391"><label class="task-list-item-label" for="task-item-384391"> 线性回归笔记</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox" id="task-item-1004036"><label class="task-list-item-label" for="task-item-1004036"> 代码实践</label></li>
 </ul>
 ]]></content>
     </entry>
