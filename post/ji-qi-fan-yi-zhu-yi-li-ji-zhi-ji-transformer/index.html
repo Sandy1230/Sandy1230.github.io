@@ -1,0 +1,593 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Aaron&#39;s Blog</title>
+<meta name="description" content="此心安处是吾乡" />
+<link rel="shortcut icon" href="https://Sandy1230.github.io/favicon.ico?v=1581995944219">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css">
+
+<link rel="stylesheet" href="https://Sandy1230.github.io/styles/main.css">
+
+
+
+  </head>
+  <body>
+    <div id="app" class="main px-4 flex flex-col lg:flex-row">
+      <div id="sidebar" class="sidebar-wrapper lg:static lg:w-1/4">
+  <div class="lg:sticky top-0">
+    <div class="sidebar-content">
+      <div class="flex lg:block p-4 lg:px-0 items-center fixed lg:static lg:block top-0 right-0 left-0 bg-white z-50">
+        <i class="ri-menu-2-line lg:mt-4 text-2xl cursor-pointer animated fadeIn" onclick="openMenu()"></i>
+        <a href="https://Sandy1230.github.io">
+          <img class="animated fadeInLeft avatar rounded-lg mx-4 lg:mt-32 lg:mx-0 mt-0 lg:w-24 lg:h-24 w-12 w-12" src="https://Sandy1230.github.io/images/avatar.png?v=1581995944219" alt="">
+        </a>
+        <h1 class="animated fadeInLeft lg:text-4xl font-extrabold lg:mt-8 mt-0 text-xl" style="animation-delay: 0.2s">Aaron&#39;s Blog</h1>
+      </div>
+      
+        <div class="animated fadeInLeft" style="animation-delay: 0.4s">
+          <p class="my-4 text-gray-600 font-light hidden lg:block">
+            文章目录
+          </p>
+          <div class="toc-container hidden lg:block">
+            <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E6%9C%BA%E5%99%A8%E7%BF%BB%E8%AF%91">机器翻译</a>
+<ul>
+<li><a href="#%E6%9C%BA%E5%99%A8%E7%BF%BB%E8%AF%91%E5%92%8C%E6%95%B0%E6%8D%AE%E9%9B%86">机器翻译和数据集</a></li>
+<li><a href="#%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86">数据预处理</a></li>
+<li><a href="#%E5%88%86%E8%AF%8D">分词</a></li>
+<li><a href="#%E5%BB%BA%E7%AB%8B%E8%AF%8D%E5%85%B8">建立词典</a></li>
+<li><a href="#%E8%BD%BD%E5%85%A5%E6%95%B0%E6%8D%AE%E9%9B%86">载入数据集</a></li>
+<li><a href="#encoder-decoder">Encoder-Decoder</a></li>
+<li><a href="#sequence-to-sequence%E6%A8%A1%E5%9E%8B">Sequence to Sequence模型</a></li>
+<li><a href="#%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0">损失函数</a></li>
+<li><a href="#%E8%AE%AD%E7%BB%83">训练</a></li>
+<li><a href="#%E6%B5%8B%E8%AF%95">测试</a></li>
+<li><a href="#viterbi-algorithm">Viterbi algorithm</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      
+    </div>
+  </div>
+</div>
+
+<div class="menu-container">
+  <i class="ri-arrow-left-line text-2xl cursor-pointer animated fadeIn close-menu-btn" onclick="closeMenu()"></i>
+  <div>
+    
+      
+        <a href="https://Sandy1230.github.io" class="menu" style="animation-delay: 0s">
+          首页
+        </a>
+      
+    
+      
+        <a href="https://Sandy1230.github.io/archives" class="menu" style="animation-delay: 0.2s">
+          归档
+        </a>
+      
+    
+      
+        <a href="https://Sandy1230.github.io/tags" class="menu" style="animation-delay: 0.4s">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu" style="animation-delay: 0.6000000000000001s">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="site-footer">
+    <div class="py-4 text-gray-700"></div>
+    <a class="rss" href="https://Sandy1230.github.io/atom.xml" target="_blank">RSS</a>
+  </div>
+</div>
+<div class="mask" onclick="closeMenu()">
+</div>
+      <div class="content-wrapper py-32 lg:p-8 lg:w-3/4 post-detail animated fadeIn">
+        <h1 class="text-3xl font-bold lg:mt-16">机器翻译、注意力机制及Transformer</h1>
+        <div class="text-sm text-gray-700 lg:my-8">
+          2020-02-18 / 7 min read
+        </div>
+        
+        <div class="post-content yue">
+          <p>@(Aaron) [机器学习, 机器翻译]</p>
+<p><strong>主要内容包括：</strong></p>
+<ul>
+<li><strong>机器翻译</strong></li>
+<li><strong>注意力机制和Seq2seq模型</strong></li>
+<li><strong>Transformer</strong></li>
+</ul>
+<hr>
+<p>[TOC]</p>
+<h2 id="机器翻译">机器翻译</h2>
+<h3 id="机器翻译和数据集">机器翻译和数据集</h3>
+<p>  机器翻译（MT）：将一段文本从一种语言自动翻译为另一种语言，用神经网络解决这个问题通常称为神经机器翻译（NMT）。 主要特征：输出是单词序列而不是单个单词。 输出序列的长度可能与源序列的长度不同。</p>
+<pre><code class="language-Python">
+import os
+os.listdir('/home/kesci/input/')
+import sys
+sys.path.append('/home/kesci/input/d2l9528/')
+import collections
+import d2l
+import zipfile
+from d2l.data.base import Vocab
+import time
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils import data
+from torch import optim
+</code></pre>
+<h3 id="数据预处理">数据预处理</h3>
+<p>  将数据集清洗、转化为神经网络的输入minbatch</p>
+<pre><code class="language-Python">
+with open('/home/kesci/input/fraeng6506/fra.txt', 'r') as f:
+      raw_text = f.read()
+print(raw_text[0:1000])
+</code></pre>
+<pre><code>Go.	Va !	CC-BY 2.0 (France) Attribution: tatoeba.org #2877272 (CM) &amp; #1158250 (Wittydev)
+Hi.	Salut !	CC-BY 2.0 (France) Attribution: tatoeba.org #538123 (CM) &amp; #509819 (Aiji)
+Hi.	Salut.	CC-BY 2.0 (France) Attribution: tatoeba.org #538123 (CM) &amp; #4320462 (gillux)
+Run!	Cours !	CC-BY 2.0 (France) Attribution: tatoeba.org #906328 (papabear) &amp; #906331 (sacredceltic)
+Run!	Courez !	CC-BY 2.0 (France) Attribution: tatoeba.org #906328 (papabear) &amp; #906332 (sacredceltic)
+ Who?	Qui ?	CC-BY 2.0 (France) Attribution: tatoeba.org #2083030 (CK) &amp; #4366796 (gillux)
+Wow!	Ça alors !	CC-BY 2.0 (France) Attribution: tatoeba.org #52027 (Zifre) &amp; #374631 (zmoo)
+Fire!	Au feu !	CC-BY 2.0 (France) Attribution: tatoeba.org #1829639 (Spamster) &amp; #4627939 (sacredceltic)
+Help!	À l'aide !	CC-BY 2.0 (France) Attribution: tatoeba.org #435084 (lukaszpp) &amp; #128430 (sysko)
+Jump.	Saute.	CC-BY 2.0 (France) Attribution: tatoeba.org #631038 (Shishir) &amp; #2416938 (Phoenix)
+Stop!	Ça suffit !	CC-BY 2.0 (France) Attribution: tato
+</code></pre>
+<pre><code class="language-Python">
+def preprocess_raw(text):
+    text = text.replace('\u202f', ' ').replace('\xa0', ' ')
+    out = ''
+    for i, char in enumerate(text.lower()):
+        if char in (',', '!', '.') and i &gt; 0 and text[i-1] != ' ':
+            out += ' '
+        out += char
+    return out
+
+text = preprocess_raw(raw_text)
+print(text[0:1000])
+</code></pre>
+<pre><code>go .	va !	cc-by 2 .0 (france) attribution: tatoeba .org #2877272 (cm) &amp; #1158250 (wittydev)
+hi .	salut !	cc-by 2 .0 (france) attribution: tatoeba .org #538123 (cm) &amp; #509819 (aiji)
+hi .	salut .	cc-by 2 .0 (france) attribution: tatoeba .org #538123 (cm) &amp; #4320462 (gillux)
+run !	cours !	cc-by 2 .0 (france) attribution: tatoeba .org #906328 (papabear) &amp; #906331 (sacredceltic)
+run !	courez !	cc-by 2 .0 (france) attribution: tatoeba .org #906328 (papabear) &amp; #906332 (sacredceltic)
+who?	qui ?	cc-by 2 .0 (france) attribution: tatoeba .org #2083030 (ck) &amp; #4366796 (gillux)
+wow !	ça alors !	cc-by 2 .0 (france) attribution: tatoeba .org #52027 (zifre) &amp; #374631 (zmoo)
+fire !	au feu !	cc-by 2 .0 (france) attribution: tatoeba .org #1829639 (spamster) &amp; #4627939 (sacredceltic)
+help !	à l'aide !	cc-by 2 .0 (france) attribution: tatoeba .org #435084 (lukaszpp) &amp; #128430 (sysko)
+jump .	saute .	cc-by 2 .0 (france) attribution: tatoeba .org #631038 (shishir) &amp; #2416938 (phoenix)
+stop !	ça suffit !	cc-b
+</code></pre>
+<p>  字符在计算机里是以编码的形式存在，我们通常所用的空格是 \x20 ，是在标准ASCII可见字符 0x20~0x7e 范围内。 而 \xa0 属于 latin1 （ISO/IEC_8859-1）中的扩展字符集字符，代表不间断空白符nbsp(non-breaking space)，超出gbk编码范围，是需要去除的特殊字符。再数据预处理的过程中，我们首先需要对数据进行清洗。</p>
+<h3 id="分词">分词</h3>
+<p>  字符串---单词组成的列表</p>
+<pre><code class="language-Python">
+num_examples = 50000
+source, target = [], []
+for i, line in enumerate(text.split('\n')):
+    if i &gt; num_examples:
+        break
+    parts = line.split('\t')
+    if len(parts) &gt;= 2:
+        source.append(parts[0].split(' '))
+        target.append(parts[1].split(' '))
+        
+source[0:3], target[0:3]
+
+d2l.set_figsize()
+d2l.plt.hist([[len(l) for l in source], [len(l) for l in target]],label=['source', 'target'])
+d2l.plt.legend(loc='upper right');
+</code></pre>
+<h3 id="建立词典">建立词典</h3>
+<p>  单词组成的列表---单词id组成的列表</p>
+<pre><code class="language-Python">
+def build_vocab(tokens):
+    tokens = [token for line in tokens for token in line]
+    return d2l.data.base.Vocab(tokens, min_freq=3, use_special_tokens=True)
+
+src_vocab = build_vocab(source)
+len(src_vocab)
+</code></pre>
+<h3 id="载入数据集">载入数据集</h3>
+<pre><code class="language-Python">
+def pad(line, max_len, padding_token):
+    if len(line) &gt; max_len:
+        return line[:max_len]
+    return line + [padding_token] * (max_len - len(line))
+pad(src_vocab[source[0]], 10, src_vocab.pad)
+</code></pre>
+<pre><code class="language-Python">
+def build_array(lines, vocab, max_len, is_source):
+    lines = [vocab[line] for line in lines]
+    if not is_source:
+        lines = [[vocab.bos] + line + [vocab.eos] for line in lines]
+    array = torch.tensor([pad(line, max_len, vocab.pad) for line in lines])
+    valid_len = (array != vocab.pad).sum(1) #第一个维度
+    return array, valid_len
+		
+def load_data_nmt(batch_size, max_len): # This function is saved in d2l.
+    src_vocab, tgt_vocab = build_vocab(source), build_vocab(target)
+    src_array, src_valid_len = build_array(source, src_vocab, max_len, True)
+    tgt_array, tgt_valid_len = build_array(target, tgt_vocab, max_len, False)
+    train_data = data.TensorDataset(src_array, src_valid_len, tgt_array, tgt_valid_len)
+    train_iter = data.DataLoader(train_data, batch_size, shuffle=True)
+    return src_vocab, tgt_vocab, train_iter
+src_vocab, tgt_vocab, train_iter = load_data_nmt(batch_size=2, max_len=8)
+for X, X_valid_len, Y, Y_valid_len, in train_iter:
+    print('X =', X.type(torch.int32), '\nValid lengths for X =', X_valid_len,
+        '\nY =', Y.type(torch.int32), '\nValid lengths for Y =', Y_valid_len)
+    break
+
+</code></pre>
+<h3 id="encoder-decoder">Encoder-Decoder</h3>
+<p>  Encoder-Decoder解决了输入和输出序列长度不等的问题。<br>
+  encoder：输入到隐藏状态<br>
+  decoder：隐藏状态到输出</p>
+<p><img src="https://Sandy1230.github.io/post-images/1581993651977.png" alt=""></p>
+<pre><code class="language-Python">
+class Encoder(nn.Module):
+    def __init__(self, **kwargs):
+        super(Encoder, self).__init__(**kwargs)
+
+    def forward(self, X, *args):
+        raise NotImplementedError
+class Decoder(nn.Module):
+    def __init__(self, **kwargs):
+        super(Decoder, self).__init__(**kwargs)
+
+    def init_state(self, enc_outputs, *args):
+        raise NotImplementedError
+
+    def forward(self, X, state):
+        raise NotImplementedError
+class EncoderDecoder(nn.Module):
+    def __init__(self, encoder, decoder, **kwargs):
+        super(EncoderDecoder, self).__init__(**kwargs)
+        self.encoder = encoder
+        self.decoder = decoder
+
+    def forward(self, enc_X, dec_X, *args):
+        enc_outputs = self.encoder(enc_X, *args)
+        dec_state = self.decoder.init_state(enc_outputs, *args)
+        return self.decoder(dec_X, dec_state)
+</code></pre>
+<p>  可以应用在对话系统、生成式任务中。</p>
+<h3 id="sequence-to-sequence模型">Sequence to Sequence模型</h3>
+<p><strong>模型：</strong><br>
+  训练<br>
+<img src="https://Sandy1230.github.io/post-images/1581993917835.png" alt=""></p>
+<p>  预测</p>
+<p><img src="https://Sandy1230.github.io/post-images/1581993927198.png" alt=""><br>
+  具体结构：<br>
+<img src="https://Sandy1230.github.io/post-images/1581993934480.png" alt=""></p>
+<p><strong>Encoder</strong></p>
+<pre><code class="language-Python">
+class Seq2SeqEncoder(d2l.Encoder):
+    def __init__(self, vocab_size, embed_size, num_hiddens, num_layers,
+                 dropout=0, **kwargs):
+        super(Seq2SeqEncoder, self).__init__(**kwargs)
+        self.num_hiddens=num_hiddens
+        self.num_layers=num_layers
+        self.embedding = nn.Embedding(vocab_size, embed_size)
+        self.rnn = nn.LSTM(embed_size,num_hiddens, num_layers, dropout=dropout)
+   
+    def begin_state(self, batch_size, device):
+        return [torch.zeros(size=(self.num_layers, batch_size, self.num_hiddens),  device=device),
+                torch.zeros(size=(self.num_layers, batch_size, self.num_hiddens),  device=device)]
+    def forward(self, X, *args):
+        X = self.embedding(X) # X shape: (batch_size, seq_len, embed_size)
+        X = X.transpose(0, 1)  # RNN needs first axes to be time
+        # state = self.begin_state(X.shape[1], device=X.device)
+        out, state = self.rnn(X)
+        # The shape of out is (seq_len, batch_size, num_hiddens).
+        # state contains the hidden state and the memory cell
+        # of the last time step, the shape is (num_layers, batch_size, num_hiddens)
+        return out, state
+encoder = Seq2SeqEncoder(vocab_size=10, embed_size=8,num_hiddens=16, num_layers=2)
+X = torch.zeros((4, 7),dtype=torch.long)
+output, state = encoder(X)
+output.shape, len(state), state[0].shape, state[1].shape
+</code></pre>
+<p><strong>Decoder</strong></p>
+<pre><code class="language-Python">
+class Seq2SeqDecoder(d2l.Decoder):
+    def __init__(self, vocab_size, embed_size, num_hiddens, num_layers,
+                 dropout=0, **kwargs):
+        super(Seq2SeqDecoder, self).__init__(**kwargs)
+        self.embedding = nn.Embedding(vocab_size, embed_size)
+        self.rnn = nn.LSTM(embed_size,num_hiddens, num_layers, dropout=dropout)
+        self.dense = nn.Linear(num_hiddens,vocab_size)
+
+    def init_state(self, enc_outputs, *args):
+        return enc_outputs[1]
+
+    def forward(self, X, state):
+        X = self.embedding(X).transpose(0, 1)
+        out, state = self.rnn(X, state)
+        # Make the batch to be the first dimension to simplify loss computation.
+        out = self.dense(out).transpose(0, 1)
+        return out, state
+decoder = Seq2SeqDecoder(vocab_size=10, embed_size=8,num_hiddens=16, num_layers=2)
+state = decoder.init_state(encoder(X))
+out, state = decoder(X, state)
+out.shape, len(state), state[0].shape, state[1].shape
+</code></pre>
+<h3 id="损失函数">损失函数</h3>
+<pre><code class="language-Python">#屏蔽pading的无效字符
+def SequenceMask(X, X_len,value=0):
+    maxlen = X.size(1)
+    mask = torch.arange(maxlen)[None, :].to(X_len.device) &lt; X_len[:, None]   
+    X[~mask]=value
+    return X
+X = torch.tensor([[1,2,3], [4,5,6]])
+SequenceMask(X,torch.tensor([1,2]))
+</code></pre>
+<pre><code>tensor([[1, 0, 0],
+           [4, 5, 0]])
+</code></pre>
+<pre><code class="language-Python">#使用的仍是交叉熵损失
+class MaskedSoftmaxCELoss(nn.CrossEntropyLoss):
+	# pred shape: (batch_size, seq_len, vocab_size)
+	# label shape: (batch_size, seq_len)
+	# valid_length shape: (batch_size, )
+	def forward(self, pred, label, valid_length):
+			# the sample weights shape should be (batch_size, seq_len)
+			weights = torch.ones_like(label)
+			weights = SequenceMask(weights, valid_length).float()
+			self.reduction='none'
+			output=super(MaskedSoftmaxCELoss, self).forward(pred.transpose(1,2), label)
+			return (output*weights).mean(dim=1)
+loss = MaskedSoftmaxCELoss()
+loss(torch.ones((3, 4, 10)), torch.ones((3,4),dtype=torch.long), torch.tensor([4,3,0]))
+</code></pre>
+<pre><code> tensor([2.3026, 1.7269, 0.0000])
+</code></pre>
+<h3 id="训练">训练</h3>
+<pre><code class="language-Python">
+def train_ch7(model, data_iter, lr, num_epochs, device):  # Saved in d2l
+    model.to(device)
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+    loss = MaskedSoftmaxCELoss()
+    tic = time.time()
+    for epoch in range(1, num_epochs+1):
+        l_sum, num_tokens_sum = 0.0, 0.0
+        for batch in data_iter:
+            optimizer.zero_grad()
+            X, X_vlen, Y, Y_vlen = [x.to(device) for x in batch]
+            Y_input, Y_label, Y_vlen = Y[:,:-1], Y[:,1:], Y_vlen-1
+            
+            Y_hat, _ = model(X, Y_input, X_vlen, Y_vlen)
+            l = loss(Y_hat, Y_label, Y_vlen).sum()
+            l.backward()
+
+            with torch.no_grad():
+                d2l.grad_clipping_nn(model, 5, device)
+            num_tokens = Y_vlen.sum().item()
+            optimizer.step()
+            l_sum += l.sum().item()
+            num_tokens_sum += num_tokens
+        if epoch % 50 == 0:
+            print(&quot;epoch {0:4d},loss {1:.3f}, time {2:.1f} sec&quot;.format( 
+                  epoch, (l_sum/num_tokens_sum), time.time()-tic))
+            tic = time.time()
+embed_size, num_hiddens, num_layers, dropout = 32, 32, 2, 0.0
+batch_size, num_examples, max_len = 64, 1e3, 10
+lr, num_epochs, ctx = 0.005, 300, d2l.try_gpu()
+src_vocab, tgt_vocab, train_iter = d2l.load_data_nmt(
+    batch_size, max_len,num_examples)
+encoder = Seq2SeqEncoder(
+    len(src_vocab), embed_size, num_hiddens, num_layers, dropout)
+decoder = Seq2SeqDecoder(
+    len(tgt_vocab), embed_size, num_hiddens, num_layers, dropout)
+model = d2l.EncoderDecoder(encoder, decoder)
+train_ch7(model, train_iter, lr, num_epochs, ctx)
+</code></pre>
+<h3 id="测试">测试</h3>
+<pre><code class="language-Python">
+def translate_ch7(model, src_sentence, src_vocab, tgt_vocab, max_len, device):
+    src_tokens = src_vocab[src_sentence.lower().split(' ')]
+    src_len = len(src_tokens)
+    if src_len &lt; max_len:
+        src_tokens += [src_vocab.pad] * (max_len - src_len)
+    enc_X = torch.tensor(src_tokens, device=device)
+    enc_valid_length = torch.tensor([src_len], device=device)
+    # use expand_dim to add the batch_size dimension.
+    enc_outputs = model.encoder(enc_X.unsqueeze(dim=0), enc_valid_length)
+    dec_state = model.decoder.init_state(enc_outputs, enc_valid_length)
+    dec_X = torch.tensor([tgt_vocab.bos], device=device).unsqueeze(dim=0)
+    predict_tokens = []
+    for _ in range(max_len):
+        Y, dec_state = model.decoder(dec_X, dec_state)
+        # The token with highest score is used as the next time step input.
+        dec_X = Y.argmax(dim=2)
+        py = dec_X.squeeze(dim=0).int().item()
+        if py == tgt_vocab.eos:
+            break
+        predict_tokens.append(py)
+    return ' '.join(tgt_vocab.to_tokens(predict_tokens))
+for sentence in ['Go .', 'Wow !', &quot;I'm OK .&quot;, 'I won !']:
+    print(sentence + ' =&gt; ' + translate_ch7(
+        model, sentence, src_vocab, tgt_vocab, max_len, ctx))
+</code></pre>
+<pre><code>Go . =&gt; va !
+Wow ! =&gt; &lt;unk&gt; !
+I'm OK . =&gt; ça va .
+I won ! =&gt; j'ai gagné !
+</code></pre>
+<h3 id="viterbi-algorithm">Viterbi algorithm</h3>
+<p>维特比算法 (Viterbi algorithm) 是机器学习中应用非常广泛的动态规划算法，在求解隐马尔科夫、条件随机场的预测以及seq2seq模型概率计算等问题中均用到了该算法。即用动态规划求解最优路径。但其同样存在弊端，如如果字典的长度非常大的话，那么查找的状态将会非常多，影响效率。而在句子生成中还有些如下方法：</p>
+<p><strong>简单greedy search：</strong><br>
+<img src="https://Sandy1230.github.io/post-images/1581995882285.png" alt=""></p>
+<p><strong>集束搜索（Beam Search）</strong></p>
+<p><img src="https://Sandy1230.github.io/post-images/1581995890808.png" alt=""></p>
+
+        </div>
+
+        
+
+
+        <div class="flex justify-between py-8">
+          
+
+          
+            <div class="next-post">
+              <a href="https://Sandy1230.github.io/post/juan-ji-shen-jing-wang-luo">
+                <h3 class="post-title">
+                  卷积神经网络
+                  <i class="ri-arrow-right-line"></i>
+                </h3>
+              </a>
+            </div>
+          
+        </div>
+
+        
+          
+            <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+
+  var gitalk = new Gitalk({
+    clientID: '0d3d10ce467656a77373',
+    clientSecret: '9e7a9b05080f1d0b0ad2169b8254429cc20f22e2',
+    repo: 'Sandy1230.github.io',
+    owner: 'Sandy1230',
+    admin: ['Sandy1230'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+
+  gitalk.render('gitalk-container')
+
+</script>
+
+          
+
+          
+        
+
+      </div>
+    </div>
+
+    <script src="https://Sandy1230.github.io/media/prism.js"></script>  
+<script>
+
+Prism.highlightAll()
+let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+// This should probably be throttled.
+// Especially because it triggers during smooth scrolling.
+// https://lodash.com/docs/4.17.10#throttle
+// You could do like...
+// window.addEventListener("scroll", () => {
+//    _.throttle(doThatStuff, 100);
+// });
+// Only not doing it here to keep this Pen dependency-free.
+
+window.addEventListener("scroll", event => {
+  let fromTop = window.scrollY;
+
+  mainNavLinks.forEach((link, index) => {
+    let section = document.getElementById(decodeURI(link.hash).substring(1));
+    let nextSection = null
+    if (mainNavLinks[index + 1]) {
+      nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+    }
+    if (section.offsetTop <= fromTop) {
+      if (nextSection) {
+        if (nextSection.offsetTop > fromTop) {
+          link.classList.add("current");
+        } else {
+          link.classList.remove("current");    
+        }
+      } else {
+        link.classList.add("current");
+      }
+    } else {
+      link.classList.remove("current");
+    }
+  });
+});
+
+
+document.addEventListener("DOMContentLoaded", function() {
+  var lazyImages = [].slice.call(document.querySelectorAll(".post-feature-image.lazy"));
+
+  if ("IntersectionObserver" in window) {
+    let lazyImageObserver = new IntersectionObserver(function(entries, observer) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          let lazyImage = entry.target
+          lazyImage.style.backgroundImage = `url(${lazyImage.dataset.bg})`
+          lazyImage.classList.remove("lazy")
+          lazyImageObserver.unobserve(lazyImage)
+        }
+      });
+    });
+
+    lazyImages.forEach(function(lazyImage) {
+      lazyImageObserver.observe(lazyImage)
+    })
+  } else {
+    // Possibly fall back to a more compatible method here
+  }
+});
+
+const menuContainer = document.querySelector('.menu-container')
+const menus = document.querySelectorAll('.menu-container .menu')
+const mask = document.querySelector('.mask')
+const contentWrapper = document.querySelector('.content-wrapper')
+const latestArticle = document.querySelector('.latest-article')
+const readMore = document.querySelector('.read-more')
+const indexPage = document.querySelector('.index-page')
+
+const isHome = location.pathname === '/'
+if (latestArticle) {
+  latestArticle.style.display = isHome ? 'block' : 'none'
+  readMore.style.display = isHome ? 'block' : 'none'
+  indexPage.style.display = isHome ? 'none' : 'block'
+}
+
+const openMenu = () => {
+  menuContainer.classList.add('open')
+  menus.forEach(menu => {
+    menu.classList.add('animated', 'fadeInLeft')
+  })
+  mask.classList.add('open')
+  contentWrapper.classList.add('is-second')
+}
+
+const closeMenu = () => {
+  menuContainer.classList.remove('open')
+  menus.forEach(menu => {
+    menu.classList.remove('animated', 'fadeInLeft')
+  })
+  mask.classList.remove('open')
+  contentWrapper.classList.remove('is-second')
+}
+</script>
+  
+  </body>
+</html>
