@@ -1,0 +1,530 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Aaron&#39;s Blog</title>
+<meta name="description" content="此心安处是吾乡" />
+<link rel="shortcut icon" href="https://Sandy1230.github.io/favicon.ico?v=1582466766700">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css">
+
+<link rel="stylesheet" href="https://Sandy1230.github.io/styles/main.css">
+
+
+
+  </head>
+  <body>
+    <div id="app" class="main px-4 flex flex-col lg:flex-row">
+      <div id="sidebar" class="sidebar-wrapper lg:static lg:w-1/4">
+  <div class="lg:sticky top-0">
+    <div class="sidebar-content">
+      <div class="flex lg:block p-4 lg:px-0 items-center fixed lg:static lg:block top-0 right-0 left-0 bg-white z-50">
+        <i class="ri-menu-2-line lg:mt-4 text-2xl cursor-pointer animated fadeIn" onclick="openMenu()"></i>
+        <a href="https://Sandy1230.github.io">
+          <img class="animated fadeInLeft avatar rounded-lg mx-4 lg:mt-32 lg:mx-0 mt-0 lg:w-24 lg:h-24 w-12 w-12" src="https://Sandy1230.github.io/images/avatar.png?v=1582466766700" alt="">
+        </a>
+        <h1 class="animated fadeInLeft lg:text-4xl font-extrabold lg:mt-8 mt-0 text-xl" style="animation-delay: 0.2s">Aaron&#39;s Blog</h1>
+      </div>
+      
+        <div class="animated fadeInLeft" style="animation-delay: 0.4s">
+          <p class="my-4 text-gray-600 font-light hidden lg:block">
+            文章目录
+          </p>
+          <div class="toc-container hidden lg:block">
+            <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E6%A0%B7%E5%BC%8F%E8%BF%81%E7%A7%BB">样式迁移</a>
+<ul>
+<li><a href="#%E6%96%B9%E6%B3%95">方法</a></li>
+<li><a href="#%E8%AF%BB%E5%8F%96%E5%86%85%E5%AE%B9%E5%9B%BE%E5%83%8F%E5%92%8C%E6%A0%B7%E5%BC%8F%E5%9B%BE%E5%83%8F">读取内容图像和样式图像</a></li>
+<li><a href="#%E9%A2%84%E5%A4%84%E7%90%86%E5%92%8C%E5%90%8E%E5%A4%84%E7%90%86%E5%9B%BE%E5%83%8F">预处理和后处理图像</a></li>
+<li><a href="#%E6%8A%BD%E5%8F%96%E7%89%B9%E5%BE%81">抽取特征</a></li>
+</ul>
+</li>
+<li><a href="#%E5%AE%9A%E4%B9%89%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0">定义损失函数</a>
+<ul>
+<li><a href="#%E5%86%85%E5%AE%B9%E6%8D%9F%E5%A4%B1">内容损失</a></li>
+<li><a href="#%E6%A0%B7%E5%BC%8F%E6%8D%9F%E5%A4%B1">样式损失</a></li>
+<li><a href="#%E6%80%BB%E5%8F%98%E5%B7%AE%E6%8D%9F%E5%A4%B1">总变差损失</a></li>
+<li><a href="#%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0">损失函数</a></li>
+</ul>
+</li>
+<li><a href="#%E5%88%9B%E5%BB%BA%E5%92%8C%E5%88%9D%E5%A7%8B%E5%8C%96%E5%90%88%E6%88%90%E5%9B%BE%E5%83%8F">创建和初始化合成图像</a></li>
+<li><a href="#%E8%AE%AD%E7%BB%83">训练</a></li>
+<li><a href="#%E5%B0%8F%E7%BB%93">小结</a></li>
+<li><a href="#%E7%BB%83%E4%B9%A0">练习</a></li>
+<li><a href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE">参考文献</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      
+    </div>
+  </div>
+</div>
+
+<div class="menu-container">
+  <i class="ri-arrow-left-line text-2xl cursor-pointer animated fadeIn close-menu-btn" onclick="closeMenu()"></i>
+  <div>
+    
+      
+        <a href="https://Sandy1230.github.io" class="menu" style="animation-delay: 0s">
+          首页
+        </a>
+      
+    
+      
+        <a href="https://Sandy1230.github.io/archives" class="menu" style="animation-delay: 0.2s">
+          归档
+        </a>
+      
+    
+      
+        <a href="https://Sandy1230.github.io/tags" class="menu" style="animation-delay: 0.4s">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu" style="animation-delay: 0.6000000000000001s">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="site-footer">
+    <div class="py-4 text-gray-700">https://github.com/Sandy1230</div>
+    <a class="rss" href="https://Sandy1230.github.io/atom.xml" target="_blank">RSS</a>
+  </div>
+</div>
+<div class="mask" onclick="closeMenu()">
+</div>
+      <div class="content-wrapper py-32 lg:p-8 lg:w-3/4 post-detail animated fadeIn">
+        <h1 class="text-3xl font-bold lg:mt-16">图像风格迁移</h1>
+        <div class="text-sm text-gray-700 lg:my-8">
+          2020-02-23 / 17 min read
+        </div>
+        
+        <div class="post-content yue">
+          <p>@(Aaron) [深度学习, 图像风格迁移]</p>
+<p><strong>主要内容包括：</strong></p>
+<ul>
+<li><strong>图像风格迁移的代码实现</strong></li>
+</ul>
+<hr>
+<p>[TOC]</p>
+<h2 id="样式迁移">样式迁移</h2>
+<p>  如果你是一位摄影爱好者，也许接触过滤镜。它能改变照片的颜色样式，从而使风景照更加锐利或者令人像更加美白。但一个滤镜通常只能改变照片的某个方面。如果要照片达到理想中的样式，经常需要尝试大量不同的组合，其复杂程度不亚于模型调参。</p>
+<p>  在本节中，我们将介绍如何使用卷积神经网络自动将某图像中的样式应用在另一图像之上，即样式迁移（style transfer）[1]。这里我们需要两张输入图像，一张是内容图像，另一张是样式图像，我们将使用神经网络修改内容图像使其在样式上接近样式图像。下图中的内容图像为本书作者在西雅图郊区的雷尼尔山国家公园（Mount Rainier National Park）拍摄的风景照，而样式图像则是一副主题为秋天橡树的油画。最终输出的合成图像在保留了内容图像中物体主体形状的情况下应用了样式图像的油画笔触，同时也让整体颜色更加鲜艳。</p>
+<figure data-type="image" tabindex="1"><img src="https://Sandy1230.github.io/post-images/1582463324656.png" alt="" loading="lazy"></figure>
+<h3 id="方法">方法</h3>
+<p>  下图用一个例子来阐述基于卷积神经网络的样式迁移方法。首先，我们初始化合成图像，例如将其初始化成内容图像。该合成图像是样式迁移过程中唯一需要更新的变量，即样式迁移所需迭代的模型参数。然后，我们选择一个预训练的卷积神经网络来抽取图像的特征，其中的模型参数在训练中无须更新。深度卷积神经网络凭借多个层逐级抽取图像的特征。我们可以选择其中某些层的输出作为内容特征或样式特征。以下图为例，这里选取的预训练的神经网络含有3个卷积层，其中第二层输出图像的内容特征，而第一层和第三层的输出被作为图像的样式特征。接下来，我们通过正向传播（实线箭头方向）计算样式迁移的损失函数，并通过反向传播（虚线箭头方向）迭代模型参数，即不断更新合成图像。样式迁移常用的损失函数由3部分组成：内容损失（content loss）使合成图像与内容图像在内容特征上接近，样式损失（style loss）令合成图像与样式图像在样式特征上接近，而总变差损失（total variation loss）则有助于减少合成图像中的噪点。最后，当模型训练结束时，我们输出样式迁移的模型参数，即得到最终的合成图像。</p>
+<figure data-type="image" tabindex="2"><img src="https://Sandy1230.github.io/post-images/1582463335345.png" alt="" loading="lazy"></figure>
+<p>  下面，我们通过实验来进一步了解样式迁移的技术细节。实验需要用到一些导入的包或模块。</p>
+<pre><code class="language-Python">
+%matplotlib inline
+import time
+import torch
+import torch.nn.functional as F
+import torchvision
+import numpy as np
+import matplotlib.pyplot as plt
+from PIL import Image
+
+import sys
+sys.path.append(&quot;/home/kesci/input&quot;) 
+import d2len9900 as d2l
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') # 均已测试
+
+print(device, torch.__version__)
+</code></pre>
+<h3 id="读取内容图像和样式图像">读取内容图像和样式图像</h3>
+<p>  首先，我们分别读取内容图像和样式图像。从打印出的图像坐标轴可以看出，它们的尺寸并不一样。</p>
+<pre><code class="language-Python">
+#d2l.set_figsize()
+content_img = Image.open('/home/kesci/input/NeuralStyle5603/rainier.jpg')
+plt.imshow(content_img);
+</code></pre>
+<figure data-type="image" tabindex="3"><img src="https://Sandy1230.github.io/post-images/1582463475485.png" alt="" loading="lazy"></figure>
+<pre><code class="language-Python">
+style_img = Image.open('/home/kesci/input/NeuralStyle5603/autumn_oak.jpg')
+plt.imshow(style_img);
+</code></pre>
+<figure data-type="image" tabindex="4"><img src="https://Sandy1230.github.io/post-images/1582463501153.png" alt="" loading="lazy"></figure>
+<h3 id="预处理和后处理图像">预处理和后处理图像</h3>
+<p>  下面定义图像的预处理函数和后处理函数。预处理函数<code>preprocess</code>对输入图像在RGB三个通道分别做标准化，并将结果变换成卷积神经网络接受的输入格式。后处理函数<code>postprocess</code>则将输出图像中的像素值还原回标准化之前的值。由于图像打印函数要求每个像素的浮点数值在0到1之间，我们使用<code>clamp</code>函数对小于0和大于1的值分别取0和1。</p>
+<pre><code class="language-Python">
+rgb_mean = np.array([0.485, 0.456, 0.406])
+rgb_std = np.array([0.229, 0.224, 0.225])
+
+def preprocess(PIL_img, image_shape):
+    process = torchvision.transforms.Compose([
+        torchvision.transforms.Resize(image_shape),
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Normalize(mean=rgb_mean, std=rgb_std)])
+
+    return process(PIL_img).unsqueeze(dim = 0) # (batch_size, 3, H, W)
+
+def postprocess(img_tensor):
+    inv_normalize = torchvision.transforms.Normalize(
+        mean= -rgb_mean / rgb_std,
+        std= 1/rgb_std)
+    to_PIL_image = torchvision.transforms.ToPILImage()
+    return to_PIL_image(inv_normalize(img_tensor[0].cpu()).clamp(0, 1))
+</code></pre>
+<h3 id="抽取特征">抽取特征</h3>
+<p>  我们使用基于ImageNet数据集预训练的VGG-19模型来抽取图像特征 [1]。</p>
+<pre><code class="language-Python">
+!echo $TORCH_HOME # 将会把预训练好的模型下载到此处(没有输出的话默认是.cache/torch)
+pretrained_net = torchvision.models.vgg19(pretrained=False)
+pretrained_net.load_state_dict(torch.load('/home/kesci/input/vgg193427/vgg19-dcbb9e9d.pth'))
+</code></pre>
+<p>  为了抽取图像的内容特征和样式特征，我们可以选择VGG网络中某些层的输出。一般来说，越靠近输入层的输出越容易抽取图像的细节信息，反之则越容易抽取图像的全局信息。为了避免合成图像过多保留内容图像的细节，我们选择VGG较靠近输出的层，也称内容层，来输出图像的内容特征。我们还从VGG中选择不同层的输出来匹配局部和全局的样式，这些层也叫样式层。在<a href="../chapter_convolutional-neural-networks/vgg.ipynb">“使用重复元素的网络（VGG）”</a>一节中我们曾介绍过，VGG网络使用了5个卷积块。实验中，我们选择第四卷积块的最后一个卷积层作为内容层，以及每个卷积块的第一个卷积层作为样式层。这些层的索引可以通过打印<code>pretrained_net</code>实例来获取。</p>
+<pre><code class="language-Python">
+style_layers, content_layers = [0, 5, 10, 19, 28], [25]
+</code></pre>
+<p>  在抽取特征时，我们只需要用到VGG从输入层到最靠近输出层的内容层或样式层之间的所有层。下面构建一个新的网络<code>net</code>，它只保留需要用到的VGG的所有层。我们将使用<code>net</code>来抽取特征。</p>
+<pre><code class="language-Python">
+net_list = []
+for i in range(max(content_layers + style_layers) + 1):
+    net_list.append(pretrained_net.features[i])
+net = torch.nn.Sequential(*net_list)
+</code></pre>
+<p>  <a href="http://"></a>给定输入<code>X</code>，如果简单调用前向计算<code>net(X)</code>，只能获得最后一层的输出。由于我们还需要中间层的输出，因此这里我们逐层计算，并保留内容层和样式层的输出。</p>
+<pre><code class="language-Python">
+def extract_features(X, content_layers, style_layers):
+    contents = []
+    styles = []
+    for i in range(len(net)):
+        X = net[i](X)
+        if i in style_layers:
+            styles.append(X)
+        if i in content_layers:
+            contents.append(X)
+    return contents, styles
+</code></pre>
+<p>  下面定义两个函数，其中<code>get_contents</code>函数对内容图像抽取内容特征，而<code>get_styles</code>函数则对样式图像抽取样式特征。因为在训练时无须改变预训练的VGG的模型参数，所以我们可以在训练开始之前就提取出内容图像的内容特征，以及样式图像的样式特征。由于合成图像是样式迁移所需迭代的模型参数，我们只能在训练过程中通过调用<code>extract_features</code>函数来抽取合成图像的内容特征和样式特征。</p>
+<pre><code class="language-Python">
+def get_contents(image_shape, device):
+    content_X = preprocess(content_img, image_shape).to(device)
+    contents_Y, _ = extract_features(content_X, content_layers, style_layers)
+    return content_X, contents_Y
+
+def get_styles(image_shape, device):
+    style_X = preprocess(style_img, image_shape).to(device)
+    _, styles_Y = extract_features(style_X, content_layers, style_layers)
+    return style_X, styles_Y
+</code></pre>
+<h2 id="定义损失函数">定义损失函数</h2>
+<p>  下面我们来描述样式迁移的损失函数。它由内容损失、样式损失和总变差损失3部分组成。</p>
+<h3 id="内容损失">内容损失</h3>
+<p>  与线性回归中的损失函数类似，内容损失通过平方误差函数衡量合成图像与内容图像在内容特征上的差异。平方误差函数的两个输入均为<code>extract_features</code>函数计算所得到的内容层的输出。</p>
+<pre><code class="language-Python">
+def content_loss(Y_hat, Y):
+    return F.mse_loss(Y_hat, Y)
+</code></pre>
+<h3 id="样式损失">样式损失</h3>
+<p>  样式损失也一样通过平方误差函数衡量合成图像与样式图像在样式上的差异。为了表达样式层输出的样式，我们先通过<code>extract_features</code>函数计算样式层的输出。假设该输出的样本数为1，通道数为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>c</mi></mrow><annotation encoding="application/x-tex">c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">c</span></span></span></span>，高和宽分别为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>h</mi></mrow><annotation encoding="application/x-tex">h</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">h</span></span></span></span>和<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>w</mi></mrow><annotation encoding="application/x-tex">w</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.02691em;">w</span></span></span></span>，我们可以把输出变换成<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>c</mi></mrow><annotation encoding="application/x-tex">c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">c</span></span></span></span>行<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>h</mi><mi>w</mi></mrow><annotation encoding="application/x-tex">hw</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">h</span><span class="mord mathdefault" style="margin-right:0.02691em;">w</span></span></span></span>列的矩阵<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="bold-italic">X</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{X}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68611em;vertical-align:0em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.07778em;">X</span></span></span></span></span></span>。矩阵<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="bold-italic">X</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{X}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68611em;vertical-align:0em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.07778em;">X</span></span></span></span></span></span>可以看作是由<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>c</mi></mrow><annotation encoding="application/x-tex">c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">c</span></span></span></span>个长度为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>h</mi><mi>w</mi></mrow><annotation encoding="application/x-tex">hw</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">h</span><span class="mord mathdefault" style="margin-right:0.02691em;">w</span></span></span></span>的向量<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi mathvariant="bold-italic">x</mi><mn>1</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi mathvariant="bold-italic">x</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">\boldsymbol{x}_1, \ldots, \boldsymbol{x}_c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.63888em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">x</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">x</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>组成的。其中向量<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi mathvariant="bold-italic">x</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\boldsymbol{x}_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.59444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">x</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>代表了通道<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span></span></span></span>上的样式特征。这些向量的格拉姆矩阵（Gram matrix）<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="bold-italic">X</mi><msup><mi mathvariant="bold-italic">X</mi><mi mathvariant="normal">⊤</mi></msup><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><mi>c</mi><mo>×</mo><mi>c</mi></mrow></msup></mrow><annotation encoding="application/x-tex">\boldsymbol{X}\boldsymbol{X}^\top \in \mathbb{R}^{c \times c}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9642179999999999em;vertical-align:-0.0391em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.07778em;">X</span></span></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.07778em;">X</span></span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9251179999999999em;"><span style="top:-3.1390100000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">⊤</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.771331em;vertical-align:0em;"></span><span class="mord"><span class="mord"><span class="mord mathbb">R</span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.771331em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">c</span><span class="mbin mtight">×</span><span class="mord mathdefault mtight">c</span></span></span></span></span></span></span></span></span></span></span></span>中<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span></span></span></span>行<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>j</mi></mrow><annotation encoding="application/x-tex">j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span></span></span></span>列的元素<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>x</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">x_{ij}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.716668em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span>即向量<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi mathvariant="bold-italic">x</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\boldsymbol{x}_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.59444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">x</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>与<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi mathvariant="bold-italic">x</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">\boldsymbol{x}_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.730548em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">x</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span>的内积，它表达了通道<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathdefault">i</span></span></span></span>和通道<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>j</mi></mrow><annotation encoding="application/x-tex">j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.85396em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span></span></span></span>上样式特征的相关性。我们用这样的格拉姆矩阵表达样式层输出的样式。需要注意的是，当<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>h</mi><mi>w</mi></mrow><annotation encoding="application/x-tex">hw</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">h</span><span class="mord mathdefault" style="margin-right:0.02691em;">w</span></span></span></span>的值较大时，格拉姆矩阵中的元素容易出现较大的值。此外，格拉姆矩阵的高和宽皆为通道数<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>c</mi></mrow><annotation encoding="application/x-tex">c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">c</span></span></span></span>。为了让样式损失不受这些值的大小影响，下面定义的<code>gram</code>函数将格拉姆矩阵除以了矩阵中元素的个数，即<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>c</mi><mi>h</mi><mi>w</mi></mrow><annotation encoding="application/x-tex">chw</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">c</span><span class="mord mathdefault">h</span><span class="mord mathdefault" style="margin-right:0.02691em;">w</span></span></span></span>。</p>
+<pre><code class="language-Python">
+def gram(X):
+    num_channels, n = X.shape[1], X.shape[2] * X.shape[3]
+    X = X.view(num_channels, n)
+    return torch.matmul(X, X.t()) / (num_channels * n)
+</code></pre>
+<p>  自然地，样式损失的平方误差函数的两个格拉姆矩阵输入分别基于合成图像与样式图像的样式层输出。这里假设基于样式图像的格拉姆矩阵<code>gram_Y</code>已经预先计算好了。</p>
+<pre><code class="language-Python">
+def style_loss(Y_hat, gram_Y):
+    return F.mse_loss(gram(Y_hat), gram_Y)
+</code></pre>
+<h3 id="总变差损失">总变差损失</h3>
+<p>  有时候，我们学到的合成图像里面有大量高频噪点，即有特别亮或者特别暗的颗粒像素。一种常用的降噪方法是总变差降噪（total variation denoising）。假设<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>x</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">x_{i,j}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.716668em;vertical-align:-0.286108em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mpunct mtight">,</span><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span>表示坐标为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mi>i</mi><mo separator="true">,</mo><mi>j</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">(i,j)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault">i</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.05724em;">j</span><span class="mclose">)</span></span></span></span>的像素值，降低总变差损失</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><munder><mo>∑</mo><mrow><mi>i</mi><mo separator="true">,</mo><mi>j</mi></mrow></munder><mrow><mo fence="true">∣</mo><msub><mi>x</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>j</mi></mrow></msub><mo>−</mo><msub><mi>x</mi><mrow><mi>i</mi><mo>+</mo><mn>1</mn><mo separator="true">,</mo><mi>j</mi></mrow></msub><mo fence="true">∣</mo></mrow><mo>+</mo><mrow><mo fence="true">∣</mo><msub><mi>x</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>j</mi></mrow></msub><mo>−</mo><msub><mi>x</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>j</mi><mo>+</mo><mn>1</mn></mrow></msub><mo fence="true">∣</mo></mrow></mrow><annotation encoding="application/x-tex">\sum_{i,j} \left|x_{i,j} - x_{i+1,j}\right| + \left|x_{i,j} - x_{i,j+1}\right|
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.463782em;vertical-align:-1.413777em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.050005em;"><span style="top:-1.8723309999999997em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mpunct mtight">,</span><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span></span></span></span><span style="top:-3.0500049999999996em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.413777em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;">∣</span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mpunct mtight">,</span><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mbin mtight">+</span><span class="mord mtight">1</span><span class="mpunct mtight">,</span><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;">∣</span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;">∣</span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mpunct mtight">,</span><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span><span class="mpunct mtight">,</span><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;">∣</span></span></span></span></span></span></p>
+<p>  能够尽可能使邻近的像素值相似。</p>
+<pre><code class="language-Python">
+def tv_loss(Y_hat):
+    return 0.5 * (F.l1_loss(Y_hat[:, :, 1:, :], Y_hat[:, :, :-1, :]) + 
+                  F.l1_loss(Y_hat[:, :, :, 1:], Y_hat[:, :, :, :-1]))
+</code></pre>
+<h3 id="损失函数">损失函数</h3>
+<p>  样式迁移的损失函数即内容损失、样式损失和总变差损失的加权和。通过调节这些权值超参数，我们可以权衡合成图像在保留内容、迁移样式以及降噪三方面的相对重要性。</p>
+<pre><code class="language-Python">
+content_weight, style_weight, tv_weight = 1, 1e3, 10
+
+def compute_loss(X, contents_Y_hat, styles_Y_hat, contents_Y, styles_Y_gram):
+    # 分别计算内容损失、样式损失和总变差损失
+    contents_l = [content_loss(Y_hat, Y) * content_weight for Y_hat, Y in zip(
+        contents_Y_hat, contents_Y)]
+    styles_l = [style_loss(Y_hat, Y) * style_weight for Y_hat, Y in zip(
+        styles_Y_hat, styles_Y_gram)]
+    tv_l = tv_loss(X) * tv_weight
+    # 对所有损失求和
+    l = sum(styles_l) + sum(contents_l) + tv_l
+    return contents_l, styles_l, tv_l, l
+</code></pre>
+<h2 id="创建和初始化合成图像">创建和初始化合成图像</h2>
+<p>  在样式迁移中，合成图像是唯一需要更新的变量。因此，我们可以定义一个简单的模型<code>GeneratedImage</code>，并将合成图像视为模型参数。模型的前向计算只需返回模型参数即可。</p>
+<pre><code class="language-Python">
+class GeneratedImage(torch.nn.Module):
+    def __init__(self, img_shape):
+        super(GeneratedImage, self).__init__()
+        self.weight = torch.nn.Parameter(torch.rand(*img_shape))
+
+    def forward(self):
+        return self.weight
+</code></pre>
+<p>  下面，我们定义<code>get_inits</code>函数。该函数创建了合成图像的模型实例，并将其初始化为图像<code>X</code>。样式图像在各个样式层的格拉姆矩阵<code>styles_Y_gram</code>将在训练前预先计算好。</p>
+<pre><code class="language-Python">
+def get_inits(X, device, lr, styles_Y):
+    gen_img = GeneratedImage(X.shape).to(device)
+    gen_img.weight.data = X.data
+    optimizer = torch.optim.Adam(gen_img.parameters(), lr=lr)
+    styles_Y_gram = [gram(Y) for Y in styles_Y]
+    return gen_img(), styles_Y_gram, optimizer
+</code></pre>
+<h2 id="训练">训练</h2>
+<p>  在训练模型时，我们不断抽取合成图像的内容特征和样式特征，并计算损失函数。</p>
+<pre><code class="language-Python">
+def train(X, contents_Y, styles_Y, device, lr, max_epochs, lr_decay_epoch):
+    print(&quot;training on &quot;, device)
+    X, styles_Y_gram, optimizer = get_inits(X, device, lr, styles_Y)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, lr_decay_epoch, gamma=0.1)
+    for i in range(max_epochs):
+        start = time.time()
+        
+        contents_Y_hat, styles_Y_hat = extract_features(
+                X, content_layers, style_layers)
+        contents_l, styles_l, tv_l, l = compute_loss(
+                X, contents_Y_hat, styles_Y_hat, contents_Y, styles_Y_gram)
+        
+        optimizer.zero_grad()
+        l.backward(retain_graph = True)
+        optimizer.step()
+        scheduler.step()
+        
+        if i % 50 == 0 and i != 0:
+            print('epoch %3d, content loss %.2f, style loss %.2f, '
+                  'TV loss %.2f, %.2f sec'
+                  % (i, sum(contents_l).item(), sum(styles_l).item(), tv_l.item(),
+                     time.time() - start))
+    return X.detach()
+</code></pre>
+<p>  下面我们开始训练模型。首先将内容图像和样式图像的高和宽分别调整为150和225像素。合成图像将由内容图像来初始化。</p>
+<pre><code class="language-Python">
+image_shape =  (150, 225)
+net = net.to(device)
+content_X, contents_Y = get_contents(image_shape, device)
+style_X, styles_Y = get_styles(image_shape, device)
+output = train(content_X, contents_Y, styles_Y, device, 0.01, 500, 200)
+</code></pre>
+<pre><code>training on  cuda
+epoch  50, content loss 0.24, style loss 1.11, TV loss 1.33, 0.29 sec
+epoch 100, content loss 0.24, style loss 0.81, TV loss 1.20, 0.29 sec
+epoch 150, content loss 0.23, style loss 0.73, TV loss 1.12, 0.29 sec
+epoch 200, content loss 0.23, style loss 0.68, TV loss 1.06, 0.29 sec
+epoch 250, content loss 0.23, style loss 0.68, TV loss 1.05, 0.29 sec
+epoch 300, content loss 0.23, style loss 0.67, TV loss 1.04, 0.29 sec
+epoch 350, content loss 0.23, style loss 0.67, TV loss 1.04, 0.28 sec
+epoch 400, content loss 0.23, style loss 0.67, TV loss 1.03, 0.29 sec
+epoch 450, content loss 0.23, style loss 0.67, TV loss 1.03, 0.29 sec
+</code></pre>
+<p>  下面我们将训练好的合成图像保存起来。可以看到下图中的合成图像保留了内容图像的风景和物体，并同时迁移了样式图像的色彩。因为图像尺寸较小，所以细节上依然比较模糊。</p>
+<pre><code class="language-Python">
+plt.imshow(postprocess(output));
+</code></pre>
+<figure data-type="image" tabindex="5"><img src="https://Sandy1230.github.io/post-images/1582466476822.png" alt="" loading="lazy"></figure>
+<p>  为了得到更加清晰的合成图像，下面我们在更大的<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>300</mn><mo>×</mo><mn>450</mn></mrow><annotation encoding="application/x-tex">300 \times 450</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">3</span><span class="mord">0</span><span class="mord">0</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">4</span><span class="mord">5</span><span class="mord">0</span></span></span></span>尺寸上训练。</p>
+<pre><code class="language-Python">
+image_shape = (300, 450)
+_, content_Y = get_contents(image_shape, device)
+_, style_Y = get_styles(image_shape, device)
+X = preprocess(postprocess(output), image_shape).to(device)
+big_output = train(X, content_Y, style_Y, device, 0.01, 500, 200)
+</code></pre>
+<pre><code>training on  cuda
+epoch  50, content loss 0.34, style loss 0.63, TV loss 0.79, 0.91 sec
+epoch 100, content loss 0.30, style loss 0.50, TV loss 0.74, 0.92 sec
+epoch 150, content loss 0.29, style loss 0.46, TV loss 0.72, 0.92 sec
+epoch 200, content loss 0.28, style loss 0.43, TV loss 0.70, 0.92 sec
+epoch 250, content loss 0.27, style loss 0.43, TV loss 0.69, 0.92 sec
+epoch 300, content loss 0.27, style loss 0.42, TV loss 0.69, 0.92 sec
+epoch 350, content loss 0.27, style loss 0.42, TV loss 0.69, 0.93 sec
+epoch 400, content loss 0.27, style loss 0.42, TV loss 0.69, 0.93 sec
+epoch 450, content loss 0.27, style loss 0.42, TV loss 0.69, 0.93 sec
+</code></pre>
+<pre><code class="language-Python">
+plt.imshow(postprocess(big_output));
+</code></pre>
+<figure data-type="image" tabindex="6"><img src="https://Sandy1230.github.io/post-images/1582466696439.png" alt="" loading="lazy"></figure>
+<p>  可以看到，由于图像尺寸更大，每一次迭代需要花费更多的时间。从训练得到的图9.15中可以看到，此时的合成图像因为尺寸更大，所以保留了更多的细节。合成图像里面不仅有大块的类似样式图像的油画色彩块，色彩块中甚至出现了细微的纹理。</p>
+<h2 id="小结">小结</h2>
+<ul>
+<li>样式迁移常用的损失函数由3部分组成：内容损失使合成图像与内容图像在内容特征上接近，样式损失令合成图像与样式图像在样式特征上接近，而总变差损失则有助于减少合成图像中的噪点。</li>
+<li>可以通过预训练的卷积神经网络来抽取图像的特征，并通过最小化损失函数来不断更新合成图像。</li>
+<li>用格拉姆矩阵表达样式层输出的样式。</li>
+</ul>
+<h2 id="练习">练习</h2>
+<ul>
+<li>选择不同的内容和样式层，输出有什么变化？</li>
+<li>调整损失函数中的权值超参数，输出是否保留更多内容或减少更多噪点？</li>
+<li>替换实验中的内容图像和样式图像，你能创作出更有趣的合成图像吗？</li>
+</ul>
+<h2 id="参考文献">参考文献</h2>
+<p>[1] Gatys, L. A., Ecker, A. S., &amp; Bethge, M. (2016). Image style transfer using convolutional neural networks. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (pp. 2414-2423).</p>
+
+        </div>
+
+        
+
+
+        <div class="flex justify-between py-8">
+          
+
+          
+            <div class="next-post">
+              <a href="https://Sandy1230.github.io/post/mu-biao-jian-ce-ji-chu/">
+                <h3 class="post-title">
+                  目标检测基础
+                  <i class="ri-arrow-right-line"></i>
+                </h3>
+              </a>
+            </div>
+          
+        </div>
+
+        
+          
+            <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+
+  var gitalk = new Gitalk({
+    clientID: '0d3d10ce467656a77373',
+    clientSecret: '9e7a9b05080f1d0b0ad2169b8254429cc20f22e2',
+    repo: 'Sandy1230.github.io',
+    owner: 'Sandy1230',
+    admin: ['Sandy1230'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+
+  gitalk.render('gitalk-container')
+
+</script>
+
+          
+
+          
+        
+
+      </div>
+    </div>
+
+    <script src="https://Sandy1230.github.io/media/prism.js"></script>  
+<script>
+
+Prism.highlightAll()
+let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+// This should probably be throttled.
+// Especially because it triggers during smooth scrolling.
+// https://lodash.com/docs/4.17.10#throttle
+// You could do like...
+// window.addEventListener("scroll", () => {
+//    _.throttle(doThatStuff, 100);
+// });
+// Only not doing it here to keep this Pen dependency-free.
+
+window.addEventListener("scroll", event => {
+  let fromTop = window.scrollY;
+
+  mainNavLinks.forEach((link, index) => {
+    let section = document.getElementById(decodeURI(link.hash).substring(1));
+    let nextSection = null
+    if (mainNavLinks[index + 1]) {
+      nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+    }
+    if (section.offsetTop <= fromTop) {
+      if (nextSection) {
+        if (nextSection.offsetTop > fromTop) {
+          link.classList.add("current");
+        } else {
+          link.classList.remove("current");    
+        }
+      } else {
+        link.classList.add("current");
+      }
+    } else {
+      link.classList.remove("current");
+    }
+  });
+});
+
+
+document.addEventListener("DOMContentLoaded", function() {
+  var lazyImages = [].slice.call(document.querySelectorAll(".post-feature-image.lazy"));
+
+  if ("IntersectionObserver" in window) {
+    let lazyImageObserver = new IntersectionObserver(function(entries, observer) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          let lazyImage = entry.target
+          lazyImage.style.backgroundImage = `url(${lazyImage.dataset.bg})`
+          lazyImage.classList.remove("lazy")
+          lazyImageObserver.unobserve(lazyImage)
+        }
+      });
+    });
+
+    lazyImages.forEach(function(lazyImage) {
+      lazyImageObserver.observe(lazyImage)
+    })
+  } else {
+    // Possibly fall back to a more compatible method here
+  }
+});
+
+const menuContainer = document.querySelector('.menu-container')
+const menus = document.querySelectorAll('.menu-container .menu')
+const mask = document.querySelector('.mask')
+const contentWrapper = document.querySelector('.content-wrapper')
+const latestArticle = document.querySelector('.latest-article')
+const readMore = document.querySelector('.read-more')
+const indexPage = document.querySelector('.index-page')
+
+const isHome = location.pathname === '/'
+if (latestArticle) {
+  latestArticle.style.display = isHome ? 'block' : 'none'
+  readMore.style.display = isHome ? 'block' : 'none'
+  indexPage.style.display = isHome ? 'none' : 'block'
+}
+
+const openMenu = () => {
+  menuContainer.classList.add('open')
+  menus.forEach(menu => {
+    menu.classList.add('animated', 'fadeInLeft')
+  })
+  mask.classList.add('open')
+  contentWrapper.classList.add('is-second')
+}
+
+const closeMenu = () => {
+  menuContainer.classList.remove('open')
+  menus.forEach(menu => {
+    menu.classList.remove('animated', 'fadeInLeft')
+  })
+  mask.classList.remove('open')
+  contentWrapper.classList.remove('is-second')
+}
+</script>
+  
+  </body>
+</html>
