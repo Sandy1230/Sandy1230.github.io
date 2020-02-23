@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://Sandy1230.github.io</id>
     <title>Aaron&apos;s Blog</title>
-    <updated>2020-02-23T14:06:11.339Z</updated>
+    <updated>2020-02-23T14:32:08.474Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://Sandy1230.github.io"/>
     <link rel="self" href="https://Sandy1230.github.io/atom.xml"/>
@@ -10,6 +10,486 @@
     <logo>https://Sandy1230.github.io/images/avatar.png</logo>
     <icon>https://Sandy1230.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, Aaron&apos;s Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[图像分类]]></title>
+        <id>https://Sandy1230.github.io/post/tu-xiang-fen-lei/</id>
+        <link href="https://Sandy1230.github.io/post/tu-xiang-fen-lei/">
+        </link>
+        <updated>2020-02-23T14:09:20.000Z</updated>
+        <content type="html"><![CDATA[<p>@(Aaron) [深度学习, 图像分类]</p>
+<p><strong>主要内容包括：</strong></p>
+<ul>
+<li><strong>Kaggle CIFAR-10 图像分类竞赛</strong></li>
+<li><strong>Kaggle Dog Breed Identification 图像分类竞赛</strong></li>
+</ul>
+<hr>
+<p>[TOC]</p>
+<h2 id="kaggle上的图像分类cifar-10">Kaggle上的图像分类（CIFAR-10)</h2>
+<p>  现在，我们将运用在前面几节中学到的知识来参加Kaggle竞赛，该竞赛解决了CIFAR-10图像分类问题。比赛网址是https://www.kaggle.com/c/cifar-10</p>
+<pre><code class="language-Python">
+# 本节的网络需要较长的训练时间
+# 可以在Kaggle访问：
+# https://www.kaggle.com/boyuai/boyu-d2l-image-classification-cifar-10
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torchvision
+import torchvision.transforms as transforms
+import torch.nn.functional as F
+import torch.optim as optim
+from torchvision import datasets, transforms
+import os
+import time
+
+print(&quot;PyTorch Version: &quot;,torch.__version__)
+</code></pre>
+<h3 id="获取和组织数据集">获取和组织数据集</h3>
+<p>  比赛数据分为训练集和测试集。训练集包含 50,000 图片。测试集包含 300,000 图片。两个数据集中的图像格式均为PNG，高度和宽度均为32像素，并具有三个颜色通道（RGB）。图像涵盖10个类别：飞机，汽车，鸟类，猫，鹿，狗，青蛙，马，船和卡车。 为了更容易上手，我们提供了上述数据集的小样本。“ train_tiny.zip”包含 80 训练样本，而“ test_tiny.zip”包含100个测试样本。它们的未压缩文件夹名称分别是“ train_tiny”和“ test_tiny”。</p>
+<h3 id="图像增强">图像增强</h3>
+<pre><code class="language-Python">
+data_transform = transforms.Compose([
+    transforms.Resize(40),
+    transforms.RandomHorizontalFlip(),
+    transforms.RandomCrop(32),
+    transforms.ToTensor()
+])
+trainset = torchvision.datasets.ImageFolder(root='/home/kesci/input/CIFAR102891/cifar-10/train'
+                                            , transform=data_transform)
+</code></pre>
+<pre><code class="language-Python">
+print(trainset[0][0].shape)
+</code></pre>
+<pre><code>torch.Size([3, 32, 32])
+</code></pre>
+<pre><code class="language-Python">
+data = [d[0].data.cpu().numpy() for d in trainset]
+print(np.mean(data))
+print(np.std(data))
+</code></pre>
+<pre><code>0.4676536
+0.23926772
+</code></pre>
+<pre><code class="language-Python">
+# 图像增强
+transform_train = transforms.Compose([
+    transforms.RandomCrop(32, padding=4),  #先四周填充0，再把图像随机裁剪成32*32
+    transforms.RandomHorizontalFlip(),  #图像一半的概率翻转，一半的概率不翻转
+    transforms.ToTensor(),
+    transforms.Normalize((0.4731, 0.4822, 0.4465), (0.2212, 0.1994, 0.2010)), #R,G,B每层的归一化用到的均值和方差
+])
+
+transform_test = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.4731, 0.4822, 0.4465), (0.2212, 0.1994, 0.2010)),
+])
+</code></pre>
+<h3 id="导入数据集">导入数据集</h3>
+<pre><code class="language-Python">
+train_dir = '/home/kesci/input/CIFAR102891/cifar-10/train'
+test_dir = '/home/kesci/input/CIFAR102891/cifar-10/test'
+
+trainset = torchvision.datasets.ImageFolder(root=train_dir, transform=transform_train)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=256, shuffle=True)
+
+testset = torchvision.datasets.ImageFolder(root=test_dir, transform=transform_test)
+testloader = torch.utils.data.DataLoader(testset, batch_size=256, shuffle=False)
+
+classes = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'forg', 'horse', 'ship', 'truck']
+</code></pre>
+<h3 id="定义模型">定义模型</h3>
+<p>  ResNet-18网络结构：ResNet全名Residual Network残差网络。Kaiming He 的《Deep Residual Learning for Image Recognition》获得了CVPR最佳论文。他提出的深度残差网络在2015年可以说是洗刷了图像方面的各大比赛，以绝对优势取得了多个比赛的冠军。而且它在保证网络精度的前提下，将网络的深度达到了152层，后来又进一步加到1000的深度。</p>
+<figure data-type="image" tabindex="1"><img src="https://Sandy1230.github.io/post-images/1582467602558.png" alt="" loading="lazy"></figure>
+<pre><code class="language-Python">
+class ResidualBlock(nn.Module):   # 我们定义网络时一般是继承的torch.nn.Module创建新的子类
+
+    def __init__(self, inchannel, outchannel, stride=1):
+        super(ResidualBlock, self).__init__()
+        #torch.nn.Sequential是一个Sequential容器，模块将按照构造函数中传递的顺序添加到模块中。
+        self.left = nn.Sequential(
+            nn.Conv2d(inchannel, outchannel, kernel_size=3, stride=stride, padding=1, bias=False), 
+            # 添加第一个卷积层,调用了nn里面的Conv2d（）
+            nn.BatchNorm2d(outchannel), # 进行数据的归一化处理
+            nn.ReLU(inplace=True), # 修正线性单元，是一种人工神经网络中常用的激活函数
+            nn.Conv2d(outchannel, outchannel, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(outchannel)
+        )
+        self.shortcut = nn.Sequential() 
+        if stride != 1 or inchannel != outchannel:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(inchannel, outchannel, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(outchannel)
+            )
+        #  便于之后的联合,要判断Y = self.left(X)的形状是否与X相同
+
+    def forward(self, x): # 将两个模块的特征进行结合，并使用ReLU激活函数得到最终的特征。
+        out = self.left(x)
+        out += self.shortcut(x)
+        out = F.relu(out)
+        return out
+
+class ResNet(nn.Module):
+    def __init__(self, ResidualBlock, num_classes=10):
+        super(ResNet, self).__init__()
+        self.inchannel = 64
+        self.conv1 = nn.Sequential( # 用3个3x3的卷积核代替7x7的卷积核，减少模型参数
+            nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+        ) 
+        self.layer1 = self.make_layer(ResidualBlock, 64,  2, stride=1)
+        self.layer2 = self.make_layer(ResidualBlock, 128, 2, stride=2)
+        self.layer3 = self.make_layer(ResidualBlock, 256, 2, stride=2)
+        self.layer4 = self.make_layer(ResidualBlock, 512, 2, stride=2)
+        self.fc = nn.Linear(512, num_classes)
+
+    def make_layer(self, block, channels, num_blocks, stride):
+        strides = [stride] + [1] * (num_blocks - 1)   #第一个ResidualBlock的步幅由make_layer的函数参数stride指定
+        # ，后续的num_blocks-1个ResidualBlock步幅是1
+        layers = []
+        for stride in strides:
+            layers.append(block(self.inchannel, channels, stride))
+            self.inchannel = channels
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        out = self.conv1(x)
+        out = self.layer1(out)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
+        out = F.avg_pool2d(out, 4)
+        out = out.view(out.size(0), -1)
+        out = self.fc(out)
+        return out
+
+
+def ResNet18():
+    return ResNet(ResidualBlock)
+</code></pre>
+<h3 id="训练和测试">训练和测试</h3>
+<pre><code class="language-Python">
+# 定义是否使用GPU
+device = torch.device(&quot;cuda&quot; if torch.cuda.is_available() else &quot;cpu&quot;)
+
+# 超参数设置
+EPOCH = 20   #遍历数据集次数
+pre_epoch = 0  # 定义已经遍历数据集的次数
+LR = 0.1        #学习率
+
+# 模型定义-ResNet
+net = ResNet18().to(device)
+
+# 定义损失函数和优化方式
+criterion = nn.CrossEntropyLoss()  #损失函数为交叉熵，多用于多分类问题
+optimizer = optim.SGD(net.parameters(), lr=LR, momentum=0.9, weight_decay=5e-4) 
+#优化方式为mini-batch momentum-SGD，并采用L2正则化（权重衰减）
+
+# 训练
+if __name__ == &quot;__main__&quot;:
+    print(&quot;Start Training, Resnet-18!&quot;)
+    num_iters = 0
+    for epoch in range(pre_epoch, EPOCH):
+        print('\nEpoch: %d' % (epoch + 1))
+        net.train()
+        sum_loss = 0.0
+        correct = 0.0
+        total = 0
+        for i, data in enumerate(trainloader, 0): 
+            #用于将一个可遍历的数据对象(如列表、元组或字符串)组合为一个索引序列，同时列出数据和数据下标，
+            #下标起始位置为0，返回 enumerate(枚举) 对象。
+            
+            num_iters += 1
+            inputs, labels = data
+            inputs, labels = inputs.to(device), labels.to(device)
+            optimizer.zero_grad()  # 清空梯度
+
+            # forward + backward
+            outputs = net(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+
+            sum_loss += loss.item() * labels.size(0)
+            _, predicted = torch.max(outputs, 1) #选出每一列中最大的值作为预测结果
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+            # 每20个batch打印一次loss和准确率
+            if (i + 1) % 20 == 0:
+                print('[epoch:%d, iter:%d] Loss: %.03f | Acc: %.3f%% '
+                        % (epoch + 1, num_iters, sum_loss / (i + 1), 100. * correct / total))
+
+    print(&quot;Training Finished, TotalEPOCH=%d&quot; % EPOCH)
+</code></pre>
+<h2 id="kaggle上的狗品种识别imagenet-dogs">Kaggle上的狗品种识别（ImageNet Dogs）</h2>
+<p>  在本节中，我们将解决Kaggle竞赛中的犬种识别挑战，比赛的网址是https://www.kaggle.com/c/dog-breed-identification 在这项比赛中，我们尝试确定120种不同的狗。该比赛中使用的数据集实际上是著名的ImageNet数据集的子集。</p>
+<pre><code class="language-Python">
+# 在本节notebook中，使用后续设置的参数在完整训练集上训练模型，大致需要40-50分钟
+# 请大家合理安排GPU时长，尽量只在训练时切换到GPU资源
+# 也可以在Kaggle上访问本节notebook：
+# https://www.kaggle.com/boyuai/boyu-d2l-dog-breed-identification-imagenet-dogs
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torchvision
+import torchvision.transforms as transforms
+import torchvision.models as models
+import os
+import shutil
+import time
+import pandas as pd
+import random
+</code></pre>
+<pre><code class="language-Python">
+# 设置随机数种子
+random.seed(0)
+torch.manual_seed(0)
+torch.cuda.manual_seed(0)
+</code></pre>
+<h3 id="整理数据集">整理数据集</h3>
+<p>  我们可以从比赛网址上下载数据集，其目录结构为：</p>
+<pre><code>| Dog Breed Identification
+    | train
+    |   | 000bec180eb18c7604dcecc8fe0dba07.jpg
+    |   | 00a338a92e4e7bf543340dc849230e75.jpg
+    |   | ...
+    | test
+    |   | 00a3edd22dc7859c487a64777fc8d093.jpg
+    |   | 00a6892e5c7f92c1f465e213fd904582.jpg
+    |   | ...
+    | labels.csv
+    | sample_submission.csv
+</code></pre>
+<p>  train和test目录下分别是训练集和测试集的图像，训练集包含10,222张图像，测试集包含10,357张图像，图像格式都是JPEG，每张图像的文件名是一个唯一的id。labels.csv包含训练集图像的标签，文件包含10,222行，每行包含两列，第一列是图像id，第二列是狗的类别。狗的类别一共有120种。</p>
+<p>  我们希望对数据进行整理，方便后续的读取，我们的主要目标是：</p>
+<ul>
+<li>从训练集中划分出验证数据集，用于调整超参数。划分之后，数据集应该包含4个部分：划分后的训练集、划分后的验证集、完整训练集、完整测试集</li>
+<li>对于4个部分，建立4个文件夹：train, valid, train_valid, test。在上述文件夹中，对每个类别都建立一个文件夹，在其中存放属于该类别的图像。前三个部分的标签已知，所以各有120个子文件夹，而测试集的标签未知，所以仅建立一个名为unknown的子文件夹，存放所有测试数据。</li>
+</ul>
+<p>  我们希望整理后的数据集目录结构为：</p>
+<pre><code>| train_valid_test
+    | train
+    |   | affenpinscher
+    |   |   | 00ca18751837cd6a22813f8e221f7819.jpg
+    |   |   | ...
+    |   | afghan_hound
+    |   |   | 0a4f1e17d720cdff35814651402b7cf4.jpg
+    |   |   | ...
+    |   | ...
+    | valid
+    |   | affenpinscher
+    |   |   | 56af8255b46eb1fa5722f37729525405.jpg
+    |   |   | ...
+    |   | afghan_hound
+    |   |   | 0df400016a7e7ab4abff824bf2743f02.jpg
+    |   |   | ...
+    |   | ...
+    | train_valid
+    |   | affenpinscher
+    |   |   | 00ca18751837cd6a22813f8e221f7819.jpg
+    |   |   | ...
+    |   | afghan_hound
+    |   |   | 0a4f1e17d720cdff35814651402b7cf4.jpg
+    |   |   | ...
+    |   | ...
+    | test
+    |   | unknown
+    |   |   | 00a3edd22dc7859c487a64777fc8d093.jpg
+    |   |   | ...
+</code></pre>
+<pre><code class="language-Python">
+data_dir = '/home/kesci/input/Kaggle_Dog6357/dog-breed-identification'  # 数据集目录
+label_file, train_dir, test_dir = 'labels.csv', 'train', 'test'  # data_dir中的文件夹、文件
+new_data_dir = './train_valid_test'  # 整理之后的数据存放的目录
+valid_ratio = 0.1  # 验证集所占比例
+</code></pre>
+<pre><code class="language-Python">
+def mkdir_if_not_exist(path):
+    # 若目录path不存在，则创建目录
+    if not os.path.exists(os.path.join(*path)):
+        os.makedirs(os.path.join(*path))
+        
+def reorg_dog_data(data_dir, label_file, train_dir, test_dir, new_data_dir, valid_ratio):
+    # 读取训练数据标签
+    labels = pd.read_csv(os.path.join(data_dir, label_file))
+    id2label = {Id: label for Id, label in labels.values}  # (key: value): (id: label)
+
+    # 随机打乱训练数据
+    train_files = os.listdir(os.path.join(data_dir, train_dir))
+    random.shuffle(train_files)    
+
+    # 原训练集
+    valid_ds_size = int(len(train_files) * valid_ratio)  # 验证集大小
+    for i, file in enumerate(train_files):
+        img_id = file.split('.')[0]  # file是形式为id.jpg的字符串
+        img_label = id2label[img_id]
+        if i &lt; valid_ds_size:
+            mkdir_if_not_exist([new_data_dir, 'valid', img_label])
+            shutil.copy(os.path.join(data_dir, train_dir, file),
+                        os.path.join(new_data_dir, 'valid', img_label))
+        else:
+            mkdir_if_not_exist([new_data_dir, 'train', img_label])
+            shutil.copy(os.path.join(data_dir, train_dir, file),
+                        os.path.join(new_data_dir, 'train', img_label))
+        mkdir_if_not_exist([new_data_dir, 'train_valid', img_label])
+        shutil.copy(os.path.join(data_dir, train_dir, file),
+                    os.path.join(new_data_dir, 'train_valid', img_label))
+
+    # 测试集
+    mkdir_if_not_exist([new_data_dir, 'test', 'unknown'])
+    for test_file in os.listdir(os.path.join(data_dir, test_dir)):
+        shutil.copy(os.path.join(data_dir, test_dir, test_file),
+                    os.path.join(new_data_dir, 'test', 'unknown'))
+</code></pre>
+<pre><code class="language-Python">
+reorg_dog_data(data_dir, label_file, train_dir, test_dir, new_data_dir, valid_ratio)
+</code></pre>
+<h3 id="图像增强-2">图像增强</h3>
+<pre><code class="language-Python">
+transform_train = transforms.Compose([
+    # 随机对图像裁剪出面积为原图像面积0.08~1倍、且高和宽之比在3/4~4/3的图像，再放缩为高和宽均为224像素的新图像
+    transforms.RandomResizedCrop(224, scale=(0.08, 1.0),  
+                                 ratio=(3.0/4.0, 4.0/3.0)),
+    # 以0.5的概率随机水平翻转
+    transforms.RandomHorizontalFlip(),
+    # 随机更改亮度、对比度和饱和度
+    transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4),
+    transforms.ToTensor(),
+    # 对各个通道做标准化，(0.485, 0.456, 0.406)和(0.229, 0.224, 0.225)是在ImageNet上计算得的各通道均值与方差
+    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])  # ImageNet上的均值和方差
+])
+
+# 在测试集上的图像增强只做确定性的操作
+transform_test = transforms.Compose([
+    transforms.Resize(256),
+    # 将图像中央的高和宽均为224的正方形区域裁剪出来
+    transforms.CenterCrop(224),
+    transforms.ToTensor(),
+    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+])
+</code></pre>
+<h3 id="读取数据">读取数据</h3>
+<pre><code class="language-Python">
+# new_data_dir目录下有train, valid, train_valid, test四个目录
+# 这四个目录中，每个子目录表示一种类别，目录中是属于该类别的所有图像
+train_ds = torchvision.datasets.ImageFolder(root=os.path.join(new_data_dir, 'train'),
+                                            transform=transform_train)
+valid_ds = torchvision.datasets.ImageFolder(root=os.path.join(new_data_dir, 'valid'),
+                                            transform=transform_test)
+train_valid_ds = torchvision.datasets.ImageFolder(root=os.path.join(new_data_dir, 'train_valid'),
+                                            transform=transform_train)
+test_ds = torchvision.datasets.ImageFolder(root=os.path.join(new_data_dir, 'test'),
+                                            transform=transform_test)
+</code></pre>
+<pre><code class="language-Python">
+batch_size = 128
+train_iter = torch.utils.data.DataLoader(train_ds, batch_size=batch_size, shuffle=True)
+valid_iter = torch.utils.data.DataLoader(valid_ds, batch_size=batch_size, shuffle=True)
+train_valid_iter = torch.utils.data.DataLoader(train_valid_ds, batch_size=batch_size, shuffle=True)
+test_iter = torch.utils.data.DataLoader(test_ds, batch_size=batch_size, shuffle=False)  # shuffle=False
+</code></pre>
+<h3 id="定义模型-2">定义模型</h3>
+<p>  这个比赛的数据属于ImageNet数据集的子集，我们使用微调的方法，选用在ImageNet完整数据集上预训练的模型来抽取图像特征，以作为自定义小规模输出网络的输入。</p>
+<p>  此处我们使用与训练的ResNet-34模型，直接复用预训练模型在输出层的输入，即抽取的特征，然后我们重新定义输出层，本次我们仅对重定义的输出层的参数进行训练，而对于用于抽取特征的部分，我们保留预训练模型的参数。</p>
+<pre><code class="language-Python">
+def get_net(device):
+    finetune_net = models.resnet34(pretrained=False)  # 预训练的resnet34网络
+    finetune_net.load_state_dict(torch.load('/home/kesci/input/resnet347742/resnet34-333f7ec4.pth'))
+    for param in finetune_net.parameters():  # 冻结参数
+        param.requires_grad = False
+    # 原finetune_net.fc是一个输入单元数为512，输出单元数为1000的全连接层
+    # 替换掉原finetune_net.fc，新finetuen_net.fc中的模型参数会记录梯度
+    finetune_net.fc = nn.Sequential(
+        nn.Linear(in_features=512, out_features=256),
+        nn.ReLU(),
+        nn.Linear(in_features=256, out_features=120)  # 120是输出类别数
+    )
+    return finetune_net
+</code></pre>
+<h3 id="定义训练函数">定义训练函数</h3>
+<pre><code class="language-Python">
+def evaluate_loss_acc(data_iter, net, device):
+    # 计算data_iter上的平均损失与准确率
+    loss = nn.CrossEntropyLoss()
+    is_training = net.training  # Bool net是否处于train模式
+    net.eval()
+    l_sum, acc_sum, n = 0, 0, 0
+    with torch.no_grad():
+        for X, y in data_iter:
+            X, y = X.to(device), y.to(device)
+            y_hat = net(X)
+            l = loss(y_hat, y)
+            l_sum += l.item() * y.shape[0]
+            acc_sum += (y_hat.argmax(dim=1) == y).sum().item()
+            n += y.shape[0]
+    net.train(is_training)  # 恢复net的train/eval状态
+    return l_sum / n, acc_sum / n
+</code></pre>
+<pre><code class="language-Python">
+def train(net, train_iter, valid_iter, num_epochs, lr, wd, device, lr_period,
+          lr_decay):
+    loss = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(net.fc.parameters(), lr=lr, momentum=0.9, weight_decay=wd)
+    net = net.to(device)
+    for epoch in range(num_epochs):
+        train_l_sum, n, start = 0.0, 0, time.time()
+        if epoch &gt; 0 and epoch % lr_period == 0:  # 每lr_period个epoch，学习率衰减一次
+            lr = lr * lr_decay
+            for param_group in optimizer.param_groups:
+                param_group['lr'] = lr
+        for X, y in train_iter:
+            X, y = X.to(device), y.to(device)
+            optimizer.zero_grad()
+            y_hat = net(X)
+            l = loss(y_hat, y)
+            l.backward()
+            optimizer.step()
+            train_l_sum += l.item() * y.shape[0]
+            n += y.shape[0]
+        time_s = &quot;time %.2f sec&quot; % (time.time() - start)
+        if valid_iter is not None:
+            valid_loss, valid_acc = evaluate_loss_acc(valid_iter, net, device)
+            epoch_s = (&quot;epoch %d, train loss %f, valid loss %f, valid acc %f, &quot;
+                       % (epoch + 1, train_l_sum / n, valid_loss, valid_acc))
+        else:
+            epoch_s = (&quot;epoch %d, train loss %f, &quot;
+                       % (epoch + 1, train_l_sum / n))
+        print(epoch_s + time_s + ', lr ' + str(lr))
+</code></pre>
+<h3 id="调参">调参</h3>
+<pre><code class="language-Python">
+num_epochs, lr_period, lr_decay = 20, 10, 0.1
+lr, wd = 0.03, 1e-4
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+</code></pre>
+<pre><code class="language-Python">
+net = get_net(device)
+train(net, train_iter, valid_iter, num_epochs, lr, wd, device, lr_period, lr_decay)
+</code></pre>
+<h3 id="在完整数据集上训练模型">在完整数据集上训练模型</h3>
+<pre><code class="language-Python">
+# 使用上面的参数设置，在完整数据集上训练模型大致需要40-50分钟的时间
+net = get_net(device)
+train(net, train_valid_iter, None, num_epochs, lr, wd, device, lr_period, lr_decay)
+</code></pre>
+<h3 id="对测试集分类并提交结果">对测试集分类并提交结果</h3>
+<p>  用训练好的模型对测试数据进行预测。比赛要求对测试集中的每张图片，都要预测其属于各个类别的概率。</p>
+<pre><code class="language-Python">
+preds = []
+for X, _ in test_iter:
+    X = X.to(device)
+    output = net(X)
+    output = torch.softmax(output, dim=1)
+    preds += output.tolist()
+ids = sorted(os.listdir(os.path.join(new_data_dir, 'test/unknown')))
+with open('submission.csv', 'w') as f:
+    f.write('id,' + ','.join(train_valid_ds.classes) + '\n')
+    for i, output in zip(ids, preds):
+        f.write(i.split('.')[0] + ',' + ','.join(
+            [str(num) for num in output]) + '\n')
+</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[图像风格迁移]]></title>
         <id>https://Sandy1230.github.io/post/tu-xiang-feng-ge-qian-yi/</id>
@@ -3976,120 +4456,6 @@ d2l.train_and_predict_rnn_pytorch(model, num_hiddens, vocab_size, device,
 </annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.40003em;vertical-align:-0.95003em;"></span><span class="mop">min</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.37144em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">∥</span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03704em;">y</span></span></span><span class="mord">∥</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">1</span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03704em;">g</span></span></span></span></span></span></span></p>
 <p>的<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>L</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">L_{2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>范数不超过<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">θ</span></span></span></span>。</p>
 <h2 id="代码实践">代码实践</h2>
-<p><strong>参考：<a href=""></a>https://github.com/Sandy1230/Dive-into-DL-PyTorch-master</strong></p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[多层感知机]]></title>
-        <id>https://Sandy1230.github.io/post/duo-ceng-gan-zhi-ji/</id>
-        <link href="https://Sandy1230.github.io/post/duo-ceng-gan-zhi-ji/">
-        </link>
-        <updated>2020-02-13T14:18:06.000Z</updated>
-        <content type="html"><![CDATA[<p>@(Aaron)[机器学习 | 多层感知机]</p>
-<p><strong>主要内容包括：</strong></p>
-<ul>
-<li><strong>多层感知机的基本知识</strong></li>
-<li><strong>使用多层感知机图像分类的从零开始的实现</strong></li>
-<li><strong>使用pytorch的简洁实现</strong></li>
-</ul>
-<hr>
-<p>[TOC]</p>
-<h2 id="多层感知机的基本知识">多层感知机的基本知识</h2>
-<p>  深度学习主要关注多层模型。在这里，我们将以多层感知机（multilayer perceptron，MLP）为例，介绍多层神经网络的概念。</p>
-<p>  多层感知机就是含有至少一个隐藏层的由全连接层组成的神经网络，且每个隐藏层的输出通过激活函数进行变换。多层感知机的层数和各隐藏层中隐藏单元个数都是超参数。以单隐藏层为例并沿用本节之前定义的符号，多层感知机按以下方式计算输出：</p>
-<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mtable><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi mathvariant="bold-italic">H</mi><mo>=</mo><mi>ϕ</mi><mrow><mo fence="true">(</mo><mi mathvariant="bold-italic">X</mi><msub><mi mathvariant="bold-italic">W</mi><mi>h</mi></msub><mo>+</mo><msub><mi mathvariant="bold-italic">b</mi><mi>h</mi></msub><mo fence="true">)</mo></mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi mathvariant="bold-italic">O</mi><mo>=</mo><mi mathvariant="bold-italic">H</mi><msub><mi mathvariant="bold-italic">W</mi><mi>o</mi></msub><mo>+</mo><msub><mi mathvariant="bold-italic">b</mi><mi>o</mi></msub></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{array}{l}
-{\boldsymbol{H}=\phi\left(\boldsymbol{X} \boldsymbol{W}_{h}+\boldsymbol{b}_{h}\right)} \\
-{\boldsymbol{O}=\boldsymbol{H} \boldsymbol{W}_{o}+\boldsymbol{b}_{o}}
-\end{array}
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.4000000000000004em;vertical-align:-0.9500000000000004em;"></span><span class="mord"><span class="mtable"><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.08229em;">H</span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mord mathdefault">ϕ</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;">(</span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.07778em;">X</span></span></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">h</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">b</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">h</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;">)</span></span></span></span></span><span style="top:-2.4099999999999997em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">O</span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.08229em;">H</span></span></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">b</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9500000000000004em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span></span></span></span></span></span></span></p>
-<p>  其中<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>ϕ</mi></mrow><annotation encoding="application/x-tex">\phi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">ϕ</span></span></span></span>表示激活函数。</p>
-<h3 id="隐藏层">隐藏层</h3>
-<p>  下图展示了一个多层感知机的神经网络图，它含有一个隐藏层，该层中有5个隐藏单元。</p>
-<figure data-type="image" tabindex="1"><img src="https://Sandy1230.github.io/post-images/1581664592941.png" alt="" loading="lazy"></figure>
-<h3 id="表达公式">表达公式</h3>
-<p>  具体来说，给定一个小批量样本 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="bold-italic">X</mi><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><mi>n</mi><mo>×</mo><mi>d</mi></mrow></msup></mrow><annotation encoding="application/x-tex">\boldsymbol{X} \in \mathbb{R}^{n \times d}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72521em;vertical-align:-0.0391em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.07778em;">X</span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.8491079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord"><span class="mord mathbb">R</span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">n</span><span class="mbin mtight">×</span><span class="mord mathdefault mtight">d</span></span></span></span></span></span></span></span></span></span></span></span>，其批量大小为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">n</span></span></span></span>，输入个数为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">d</span></span></span></span> 。假设多层感知机只有一个隐藏层，其中隐藏单元个数为 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>h</mi></mrow><annotation encoding="application/x-tex">h</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">h</span></span></span></span> 。记隐藏层的输出（也称为隐藏层变量或隐藏变量）为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>H</mi></mrow><annotation encoding="application/x-tex">H</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.08125em;">H</span></span></span></span>，有<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="bold-italic">H</mi><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><mi>n</mi><mo>×</mo><mi>h</mi></mrow></msup></mrow><annotation encoding="application/x-tex">\boldsymbol{H} \in \mathbb{R}^{n \times h}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72521em;vertical-align:-0.0391em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.08229em;">H</span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.8491079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord"><span class="mord mathbb">R</span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">n</span><span class="mbin mtight">×</span><span class="mord mathdefault mtight">h</span></span></span></span></span></span></span></span></span></span></span></span>。因为隐藏层和输出层均是全连接层，可以设隐藏层的权重参数和偏差参数分别为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi mathvariant="bold-italic">W</mi><mi>h</mi></msub><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><mi>d</mi><mo>×</mo><mi>h</mi></mrow></msup></mrow><annotation encoding="application/x-tex">\boldsymbol{W}_{h} \in \mathbb{R}^{d \times h}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83611em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">h</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.8491079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord"><span class="mord mathbb">R</span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">d</span><span class="mbin mtight">×</span><span class="mord mathdefault mtight">h</span></span></span></span></span></span></span></span></span></span></span></span>和 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi mathvariant="bold-italic">b</mi><mi>h</mi></msub><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><mn>1</mn><mo>×</mo><mi>h</mi></mrow></msup></mrow><annotation encoding="application/x-tex">\boldsymbol{b}_{h} \in \mathbb{R}^{1 \times h}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">b</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">h</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.8491079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord"><span class="mord mathbb">R</span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mbin mtight">×</span><span class="mord mathdefault mtight">h</span></span></span></span></span></span></span></span></span></span></span></span>，输出层的权重和偏差参数分别为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi mathvariant="bold-italic">W</mi><mi>o</mi></msub><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><mi>h</mi><mo>×</mo><mi>q</mi></mrow></msup></mrow><annotation encoding="application/x-tex">\boldsymbol{W}_{o} \in \mathbb{R}^{h \times q}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83611em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.8491079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord"><span class="mord mathbb">R</span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">h</span><span class="mbin mtight">×</span><span class="mord mathdefault mtight" style="margin-right:0.03588em;">q</span></span></span></span></span></span></span></span></span></span></span></span>和<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi mathvariant="bold-italic">b</mi><mi>o</mi></msub><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><mn>1</mn><mo>×</mo><mi>q</mi></mrow></msup></mrow><annotation encoding="application/x-tex">\boldsymbol{b}_{o} \in \mathbb{R}^{1 \times q}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">b</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord"><span class="mord mathbb">R</span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mbin mtight">×</span><span class="mord mathdefault mtight" style="margin-right:0.03588em;">q</span></span></span></span></span></span></span></span></span></span></span></span>。</p>
-<p>  我们先来看一种含单隐藏层的多层感知机的设计。其输出<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="bold-italic">O</mi><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><mi>n</mi><mo>×</mo><mi>q</mi></mrow></msup></mrow><annotation encoding="application/x-tex">\boldsymbol{O} \in \mathbb{R}^{n \times q}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72521em;vertical-align:-0.0391em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">O</span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.771331em;vertical-align:0em;"></span><span class="mord"><span class="mord"><span class="mord mathbb">R</span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.771331em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">n</span><span class="mbin mtight">×</span><span class="mord mathdefault mtight" style="margin-right:0.03588em;">q</span></span></span></span></span></span></span></span></span></span></span></span>的计算为</p>
-<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mtable><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi mathvariant="bold-italic">H</mi><mo>=</mo><mi mathvariant="bold-italic">X</mi><msub><mi mathvariant="bold-italic">W</mi><mi>h</mi></msub><mo>+</mo><msub><mi mathvariant="bold-italic">b</mi><mi>h</mi></msub></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi mathvariant="bold-italic">O</mi><mo>=</mo><mi mathvariant="bold-italic">H</mi><msub><mi mathvariant="bold-italic">W</mi><mi>o</mi></msub><mo>+</mo><msub><mi mathvariant="bold-italic">b</mi><mi>o</mi></msub></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{array}{l}
-{\boldsymbol{H}=\boldsymbol{X} \boldsymbol{W}_{h}+\boldsymbol{b}_{h}} \\
-{\boldsymbol{O}=\boldsymbol{H} \boldsymbol{W}_{o}+\boldsymbol{b}_{o}}
-\end{array}
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.4000000000000004em;vertical-align:-0.9500000000000004em;"></span><span class="mord"><span class="mtable"><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.08229em;">H</span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.07778em;">X</span></span></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">h</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">b</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">h</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span style="top:-2.4099999999999997em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">O</span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.08229em;">H</span></span></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">b</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9500000000000004em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span></span></span></span></span></span></span></p>
-<p>  也就是将隐藏层的输出直接作为输出层的输入。如果将以上两个式子联立起来，可以得到</p>
-<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="bold-italic">O</mi><mo>=</mo><mrow><mo fence="true">(</mo><mi mathvariant="bold-italic">X</mi><msub><mi mathvariant="bold-italic">W</mi><mi>h</mi></msub><mo>+</mo><msub><mi mathvariant="bold-italic">b</mi><mi>h</mi></msub><mo fence="true">)</mo></mrow><msub><mi mathvariant="bold-italic">W</mi><mi>o</mi></msub><mo>+</mo><msub><mi mathvariant="bold-italic">b</mi><mi>o</mi></msub><mo>=</mo><mi mathvariant="bold-italic">X</mi><msub><mi mathvariant="bold-italic">W</mi><mi>h</mi></msub><msub><mi mathvariant="bold-italic">W</mi><mi>o</mi></msub><mo>+</mo><msub><mi mathvariant="bold-italic">b</mi><mi>h</mi></msub><msub><mi mathvariant="bold-italic">W</mi><mi>o</mi></msub><mo>+</mo><msub><mi mathvariant="bold-italic">b</mi><mi>o</mi></msub></mrow><annotation encoding="application/x-tex">\boldsymbol{O}=\left(\boldsymbol{X} \boldsymbol{W}_{h}+\boldsymbol{b}_{h}\right) \boldsymbol{W}_{o}+\boldsymbol{b}_{o}=\boldsymbol{X} \boldsymbol{W}_{h} \boldsymbol{W}_{o}+\boldsymbol{b}_{h} \boldsymbol{W}_{o}+\boldsymbol{b}_{o}
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68611em;vertical-align:0em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">O</span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;">(</span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.07778em;">X</span></span></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">h</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">b</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">h</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;">)</span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">b</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.83611em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.07778em;">X</span></span></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">h</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">b</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">h</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">b</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></p>
-<p>  从联立后的式子可以看出，虽然神经网络引入了隐藏层，却依然等价于一个单层神经网络：其中输出层权重参数为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi mathvariant="bold-italic">W</mi><mi>h</mi></msub><msub><mi mathvariant="bold-italic">W</mi><mi>o</mi></msub></mrow><annotation encoding="application/x-tex">\boldsymbol{W}_{h} \boldsymbol{W}_{o}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83611em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">h</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，偏差参数为<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>b</mi><mi>h</mi></msub><msub><mi>W</mi><mi>o</mi></msub><mo>+</mo><msub><mi>b</mi><mi>o</mi></msub></mrow><annotation encoding="application/x-tex">b_{h} W_{o}+b_{o}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">h</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.13889em;">W</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.13889em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">o</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>。不难发现，即便再添加更多的隐藏层，以上设计依然只能与仅含输出层的单层神经网络等价。</p>
-<h3 id="激活函数">激活函数</h3>
-<p>  上述问题的根源在于全连接层只是对数据做仿射变换（affine transformation），而多个仿射变换的叠加仍然是一个仿射变换。解决问题的一个方法是引入非线性变换，例如对隐藏变量使用按元素运算的非线性函数进行变换，然后再作为下一个全连接层的输入。这个非线性函数被称为激活函数（activation function）。</p>
-<p>  下面我们介绍几个常用的激活函数：</p>
-<p><strong>ReLU函数</strong></p>
-<p>  ReLU（rectified linear unit）函数提供了一个很简单的非线性变换。给定元素，该函数定义为</p>
-<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="normal">ReLU</mi><mo>⁡</mo><mo>(</mo><mi>x</mi><mo>)</mo><mo>=</mo><mi>max</mi><mo>⁡</mo><mo>(</mo><mi>x</mi><mo separator="true">,</mo><mn>0</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">\operatorname{ReLU}(x)=\max (x, 0)
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm">R</span><span class="mord mathrm">e</span><span class="mord mathrm">L</span><span class="mord mathrm">U</span></span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">max</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">0</span><span class="mclose">)</span></span></span></span></span></p>
-<p>  可以看出，ReLU函数只保留正数元素，并将负数元素清零。为了直观地观察这一非线性变换，我们先定义一个绘图函数xyplot。</p>
-<pre><code class="language-python">%matplotlib inline
-import torch
-import numpy as np
-import matplotlib.pyplot as plt
-import sys
-sys.path.append(&quot;/home/kesci/input&quot;)
-import d2lzh1981 as d2l
-print(torch.__version__)
-</code></pre>
-<pre><code class="language-python">def xyplot(x_vals, y_vals, name):
-    # d2l.set_figsize(figsize=(5, 2.5))
-    plt.plot(x_vals.detach().numpy(), y_vals.detach().numpy())
-    plt.xlabel('x')
-    plt.ylabel(name + '(x)')
-</code></pre>
-<pre><code class="language-python">x = torch.arange(-8.0, 8.0, 0.1, requires_grad=True)
-y = x.relu()
-xyplot(x, y, 'relu')
-</code></pre>
-<figure data-type="image" tabindex="2"><img src="https://Sandy1230.github.io/post-images/1581664618945.png" alt="" loading="lazy"></figure>
-<pre><code class="language-python">y.sum().backward()
-xyplot(x, x.grad, 'grad of relu')
-</code></pre>
-<figure data-type="image" tabindex="3"><img src="https://Sandy1230.github.io/post-images/1581664699279.png" alt="" loading="lazy"></figure>
-<p><strong>Sigmoid函数</strong><br>
-  sigmoid函数可以将元素的值变换到0和1之间：</p>
-<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="normal">sigmoid</mi><mo>⁡</mo><mo>(</mo><mi>x</mi><mo>)</mo><mo>=</mo><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><mi>exp</mi><mo>⁡</mo><mo>(</mo><mo>−</mo><mi>x</mi><mo>)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">\operatorname{sigmoid}(x)=\frac{1}{1+\exp (-x)}
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm">s</span><span class="mord mathrm">i</span><span class="mord mathrm" style="margin-right:0.01389em;">g</span><span class="mord mathrm">m</span><span class="mord mathrm">o</span><span class="mord mathrm">i</span><span class="mord mathrm">d</span></span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.25744em;vertical-align:-0.936em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.32144em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mop">exp</span><span class="mopen">(</span><span class="mord">−</span><span class="mord mathdefault">x</span><span class="mclose">)</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
-<pre><code class="language-python">y = x.sigmoid()
-xyplot(x, y, 'sigmoid')
-</code></pre>
-<figure data-type="image" tabindex="4"><img src="https://Sandy1230.github.io/post-images/1581664760244.png" alt="" loading="lazy"></figure>
-<p>  依据链式法则，sigmoid函数的导数</p>
-<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mtext> sigmoid</mtext><mo mathvariant="normal">′</mo></msup><mo>(</mo><mi>x</mi><mo>)</mo><mo>=</mo><mi mathvariant="normal">sigmoid</mi><mo>⁡</mo><mo>(</mo><mi>x</mi><mo>)</mo><mo>(</mo><mn>1</mn><mo>−</mo><mi mathvariant="normal">sigmoid</mi><mo>⁡</mo><mo>(</mo><mi>x</mi><mo>)</mo><mo>)</mo></mrow><annotation encoding="application/x-tex">\text { sigmoid}^{\prime}(x)=\operatorname{sigmoid}(x)(1-\operatorname{sigmoid}(x))
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0862319999999999em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord text"><span class="mord"> sigmoid</span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.836232em;"><span style="top:-3.1473400000000002em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm">s</span><span class="mord mathrm">i</span><span class="mord mathrm" style="margin-right:0.01389em;">g</span><span class="mord mathrm">m</span><span class="mord mathrm">o</span><span class="mord mathrm">i</span><span class="mord mathrm">d</span></span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mclose">)</span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm">s</span><span class="mord mathrm">i</span><span class="mord mathrm" style="margin-right:0.01389em;">g</span><span class="mord mathrm">m</span><span class="mord mathrm">o</span><span class="mord mathrm">i</span><span class="mord mathrm">d</span></span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mclose">)</span><span class="mclose">)</span></span></span></span></span></p>
-<p>  下面绘制了sigmoid函数的导数。当输入为0时，sigmoid函数的导数达到最大值0.25；当输入越偏离0时，sigmoid函数的导数越接近0。</p>
-<pre><code class="language-python">x.grad.zero_()
-y.sum().backward()
-xyplot(x, x.grad, 'grad of sigmoid')
-</code></pre>
-<figure data-type="image" tabindex="5"><img src="https://Sandy1230.github.io/post-images/1581664768693.png" alt="" loading="lazy"></figure>
-<p><strong>tanh函数</strong></p>
-<p>  tanh（双曲正切）函数可以将元素的值变换到-1和1之间：</p>
-<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>tanh</mi><mo>⁡</mo><mo>(</mo><mi>x</mi><mo>)</mo><mo>=</mo><mfrac><mrow><mn>1</mn><mo>−</mo><mi>exp</mi><mo>⁡</mo><mo>(</mo><mo>−</mo><mn>2</mn><mi>x</mi><mo>)</mo></mrow><mrow><mn>1</mn><mo>+</mo><mi>exp</mi><mo>⁡</mo><mo>(</mo><mo>−</mo><mn>2</mn><mi>x</mi><mo>)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">\tanh (x)=\frac{1-\exp (-2 x)}{1+\exp (-2 x)}
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">tanh</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.363em;vertical-align:-0.936em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mop">exp</span><span class="mopen">(</span><span class="mord">−</span><span class="mord">2</span><span class="mord mathdefault">x</span><span class="mclose">)</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mop">exp</span><span class="mopen">(</span><span class="mord">−</span><span class="mord">2</span><span class="mord mathdefault">x</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
-<p>  我们接着绘制tanh函数。当输入接近0时，tanh函数接近线性变换。虽然该函数的形状和sigmoid函数的形状很像，但tanh函数在坐标系的原点上对称。</p>
-<pre><code class="language-python">y = x.tanh()
-xyplot(x, y, 'tanh')
-</code></pre>
-<p><img src="https://Sandy1230.github.io/post-images/1581664821345.png" alt="" loading="lazy"><br>
-  依据链式法则，tanh函数的导数</p>
-<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>tanh</mi><mo>⁡</mo><mo mathvariant="normal">′</mo></msup><mo>(</mo><mi>x</mi><mo>)</mo><mo>=</mo><mn>1</mn><mo>−</mo><msup><mi>tanh</mi><mo>⁡</mo><mn>2</mn></msup><mo>(</mo><mi>x</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">\tanh ^{\prime}(x)=1-\tanh ^{2}(x)
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0862319999999999em;vertical-align:-0.25em;"></span><span class="mop"><span class="mop">tanh</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.836232em;"><span style="top:-3.1473400000000002em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.148448em;vertical-align:-0.25em;"></span><span class="mop"><span class="mop">tanh</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8984479999999999em;"><span style="top:-3.1473400000000002em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mclose">)</span></span></span></span></span></p>
-<p>  下面绘制了tanh函数的导数。当输入为0时，tanh函数的导数达到最大值1；当输入越偏离0时，tanh函数的导数越接近0。</p>
-<pre><code class="language-python">x.grad.zero_()
-y.sum().backward()
-xyplot(x, x.grad, 'grad of tanh')
-</code></pre>
-<figure data-type="image" tabindex="6"><img src="https://Sandy1230.github.io/post-images/1581664833490.png" alt="" loading="lazy"></figure>
-<h3 id="关于激活函数的选择">关于激活函数的选择</h3>
-<p>  ReLu函数是一个通用的激活函数，目前在大多数情况下使用。但是，ReLU函数只能在隐藏层中使用。用于分类器时，sigmoid函数及其组合通常效果更好。由于梯度消失问题，有时要避免使用sigmoid和tanh函数。在神经网络层数较多的时候，最好使用ReLu函数，ReLu函数比较简单计算量少，而sigmoid和tanh函数计算量大很多。在选择激活函数的时候可以先选用ReLu函数如果效果不理想可以尝试其他激活函数。</p>
-<p>###图像分类数据集（Fashion-MNIST）<br>
-Fashion-MNIST是一个多类图像分类数据集。它将在后面被多次使用，以方便我们观察比较算法之间在模型精度和计算效率上的区别。图像分类数据集中最常用的是手写数字识别数据集MNIST[1]。但大部分模型在MNIST上的分类精度都超过了95%。为了更直观地观察算法之间的差异，我们将使用一个图像内容更加复杂的数据集Fashion-MNIST[2]。</p>
-<h2 id="使用多层感知机图像分类的从零开始的实现及pytorch重新实现">使用多层感知机图像分类的从零开始的实现及pytorch重新实现</h2>
 <p><strong>参考：<a href=""></a>https://github.com/Sandy1230/Dive-into-DL-PyTorch-master</strong></p>
 ]]></content>
     </entry>
