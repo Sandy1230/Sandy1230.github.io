@@ -1,0 +1,466 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Aaron&#39;s Blog</title>
+<meta name="description" content="此心安处是吾乡" />
+<link rel="shortcut icon" href="https://Sandy1230.github.io/favicon.ico?v=1582551566463">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css">
+
+<link rel="stylesheet" href="https://Sandy1230.github.io/styles/main.css">
+
+
+
+  </head>
+  <body>
+    <div id="app" class="main px-4 flex flex-col lg:flex-row">
+      <div id="sidebar" class="sidebar-wrapper lg:static lg:w-1/4">
+  <div class="lg:sticky top-0">
+    <div class="sidebar-content">
+      <div class="flex lg:block p-4 lg:px-0 items-center fixed lg:static lg:block top-0 right-0 left-0 bg-white z-50">
+        <i class="ri-menu-2-line lg:mt-4 text-2xl cursor-pointer animated fadeIn" onclick="openMenu()"></i>
+        <a href="https://Sandy1230.github.io">
+          <img class="animated fadeInLeft avatar rounded-lg mx-4 lg:mt-32 lg:mx-0 mt-0 lg:w-24 lg:h-24 w-12 w-12" src="https://Sandy1230.github.io/images/avatar.png?v=1582551566463" alt="">
+        </a>
+        <h1 class="animated fadeInLeft lg:text-4xl font-extrabold lg:mt-8 mt-0 text-xl" style="animation-delay: 0.2s">Aaron&#39;s Blog</h1>
+      </div>
+      
+        <div class="animated fadeInLeft" style="animation-delay: 0.4s">
+          <p class="my-4 text-gray-600 font-light hidden lg:block">
+            文章目录
+          </p>
+          <div class="toc-container hidden lg:block">
+            <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#generative-adversarial-networks">Generative Adversarial Networks</a></li>
+<li><a href="#generate-some-real-data">Generate some &quot;real&quot; data</a></li>
+<li><a href="#generator">Generator</a></li>
+<li><a href="#discriminator">Discriminator</a></li>
+<li><a href="#training">Training</a></li>
+<li><a href="#summary">Summary</a></li>
+<li><a href="#exercises">Exercises</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      
+    </div>
+  </div>
+</div>
+
+<div class="menu-container">
+  <i class="ri-arrow-left-line text-2xl cursor-pointer animated fadeIn close-menu-btn" onclick="closeMenu()"></i>
+  <div>
+    
+      
+        <a href="https://Sandy1230.github.io" class="menu" style="animation-delay: 0s">
+          首页
+        </a>
+      
+    
+      
+        <a href="https://Sandy1230.github.io/archives" class="menu" style="animation-delay: 0.2s">
+          归档
+        </a>
+      
+    
+      
+        <a href="https://Sandy1230.github.io/tags" class="menu" style="animation-delay: 0.4s">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu" style="animation-delay: 0.6000000000000001s">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="site-footer">
+    <div class="py-4 text-gray-700">https://github.com/Sandy1230</div>
+    <a class="rss" href="https://Sandy1230.github.io/atom.xml" target="_blank">RSS</a>
+  </div>
+</div>
+<div class="mask" onclick="closeMenu()">
+</div>
+      <div class="content-wrapper py-32 lg:p-8 lg:w-3/4 post-detail animated fadeIn">
+        <h1 class="text-3xl font-bold lg:mt-16">生成对抗网络 </h1>
+        <div class="text-sm text-gray-700 lg:my-8">
+          2020-02-24 / 14 min read
+        </div>
+        
+        <div class="post-content yue">
+          <p>@(Aaron) [深度学习, 生成对抗网络]</p>
+<p><strong>主要内容包括：</strong></p>
+<ul>
+<li><strong>介绍生成对抗网络的原理和实现</strong></li>
+</ul>
+<hr>
+<p>[TOC]</p>
+<h2 id="generative-adversarial-networks">Generative Adversarial Networks</h2>
+<p>  Throughout most of this book, we have talked about how to make predictions. In some form or another, we used deep neural networks learned mappings from data points to labels. This kind of learning is called discriminative learning, as in, we'd like to be able to discriminate between photos cats and photos of dogs. Classifiers and regressors are both examples of discriminative learning. And neural networks trained by backpropagation have upended everything we thought we knew about discriminative learning on large complicated datasets. Classification accuracies on high-res images has gone from useless to human-level (with some caveats) in just 5-6 years. We will spare you another spiel about all the other discriminative tasks where deep neural networks do astoundingly well.</p>
+<p>  But there is more to machine learning than just solving discriminative tasks. For example, given a large dataset, without any labels, we might want to learn a model that concisely captures the characteristics of this data. Given such a model, we could sample synthetic data points that resemble the distribution of the training data. For example, given a large corpus of photographs of faces, we might want to be able to generate a new photorealistic image that looks like it might plausibly have come from the same dataset. This kind of learning is called generative modeling.</p>
+<p>  Until recently, we had no method that could synthesize novel photorealistic images. But the success of deep neural networks for discriminative learning opened up new possibilities. One big trend over the last three years has been the application of discriminative deep nets to overcome challenges in problems that we do not generally think of as supervised learning problems. The recurrent neural network language models are one example of using a discriminative network (trained to predict the next character) that once trained can act as a generative model.</p>
+<p>  In 2014, a breakthrough paper introduced Generative adversarial networks (GANs) <code>Goodfellow.Pouget-Abadie.Mirza.ea.2014</code>, a clever new way to leverage the power of discriminative models to get good generative models. At their heart, GANs rely on the idea that a data generator is good if we cannot tell fake data apart from real data. In statistics, this is called a two-sample test - a test to answer the question whether datasets <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>X</mi><mo>=</mo><mo>{</mo><msub><mi>x</mi><mn>1</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>x</mi><mi>n</mi></msub><mo>}</mo></mrow><annotation encoding="application/x-tex">X=\{x_1,\ldots, x_n\}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.07847em;">X</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">{</span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">}</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>X</mi><mo mathvariant="normal">′</mo></msup><mo>=</mo><mo>{</mo><msubsup><mi>x</mi><mn>1</mn><mo mathvariant="normal">′</mo></msubsup><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msubsup><mi>x</mi><mi>n</mi><mo mathvariant="normal">′</mo></msubsup><mo>}</mo></mrow><annotation encoding="application/x-tex">X&#x27;=\{x&#x27;_1,\ldots, x&#x27;_n\}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07847em;">X</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.001892em;vertical-align:-0.25em;"></span><span class="mopen">{</span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-2.4518920000000004em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.24810799999999997em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-2.4530000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">n</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mclose">}</span></span></span></span> were drawn from the same distribution. The main difference between most statistics papers and GANs is that the latter use this idea in a constructive way. In other words, rather than just training a model to say &quot;hey, these two datasets do not look like they came from the same distribution&quot;, they use the <a href="https://en.wikipedia.org/wiki/Two-sample_hypothesis_testing">two-sample test</a> to provide training signals to a generative model. This allows us to improve the data generator until it generates something that resembles the real data. At the very least, it needs to fool the classifier. Even if our classifier is a state of the art deep neural network.</p>
+<figure data-type="image" tabindex="1"><img src="https://Sandy1230.github.io/post-images/1582549748356.jpg" alt="" loading="lazy"></figure>
+<p>  The GAN architecture is illustrated.As you can see, there are two pieces in GAN architecture - first off, we need a device (say, a deep network but it really could be anything, such as a game rendering engine) that might potentially be able to generate data that looks just like the real thing. If we are dealing with images, this needs to generate images. If we are dealing with speech, it needs to generate audio sequences, and so on. We call this the generator network. The second component is the discriminator network. It attempts to distinguish fake and real data from each other. Both networks are in competition with each other. The generator network attempts to fool the discriminator network. At that point, the discriminator network adapts to the new fake data. This information, in turn is used to improve the generator network, and so on.</p>
+<p>  The discriminator is a binary classifier to distinguish if the input <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>x</mi></mrow><annotation encoding="application/x-tex">x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">x</span></span></span></span> is real (from real data) or fake (from the generator). Typically, the discriminator outputs a scalar prediction <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>o</mi><mo>∈</mo><mi mathvariant="double-struck">R</mi></mrow><annotation encoding="application/x-tex">o\in\mathbb R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathdefault">o</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.68889em;vertical-align:0em;"></span><span class="mord mathbb">R</span></span></span></span> for input <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="bold">x</mi></mrow><annotation encoding="application/x-tex">\mathbf x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.44444em;vertical-align:0em;"></span><span class="mord mathbf">x</span></span></span></span>, such as using a dense layer with hidden size 1, and then applies sigmoid function to obtain the predicted probability <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>D</mi><mo>(</mo><mi mathvariant="bold">x</mi><mo>)</mo><mo>=</mo><mn>1</mn><mi mathvariant="normal">/</mi><mo>(</mo><mn>1</mn><mo>+</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>o</mi></mrow></msup><mo>)</mo></mrow><annotation encoding="application/x-tex">D(\mathbf x) = 1/(1+e^{-o})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="mopen">(</span><span class="mord mathbf">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mord">/</span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.021331em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathdefault">e</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.771331em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mathdefault mtight">o</span></span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>. Assume the label <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>y</mi></mrow><annotation encoding="application/x-tex">y</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span></span></span></span> for the true data is <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> for the fake data. We train the discriminator to minimize the cross-entropy loss, <em>i.e.</em>,</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><munder><mi>min</mi><mo>⁡</mo><mi>D</mi></munder><mo>{</mo><mo>−</mo><mi>y</mi><mi>log</mi><mo>⁡</mo><mi>D</mi><mo>(</mo><mi mathvariant="bold">x</mi><mo>)</mo><mo>−</mo><mo>(</mo><mn>1</mn><mo>−</mo><mi>y</mi><mo>)</mo><mi>log</mi><mo>⁡</mo><mo>(</mo><mn>1</mn><mo>−</mo><mi>D</mi><mo>(</mo><mi mathvariant="bold">x</mi><mo>)</mo><mo>)</mo><mo>}</mo><mo separator="true">,</mo></mrow><annotation encoding="application/x-tex"> \min_D \{ - y \log D(\mathbf x) - (1-y)\log(1-D(\mathbf x)) \},
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.4943309999999999em;vertical-align:-0.744331em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.66786em;"><span style="top:-2.055669em;margin-left:0em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">D</span></span></span><span style="top:-2.7em;"><span class="pstrut" style="height:2.7em;"></span><span><span class="mop">min</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.744331em;"><span></span></span></span></span></span><span class="mopen">{</span><span class="mord">−</span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="mopen">(</span><span class="mord mathbf">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="mopen">(</span><span class="mord mathbf">x</span><span class="mclose">)</span><span class="mclose">)</span><span class="mclose">}</span><span class="mpunct">,</span></span></span></span></span></p>
+<p>  For the generator, it first draws some parameter <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="bold">z</mi><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">\mathbf z\in\mathbb R^d</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathbf">z</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.849108em;vertical-align:0em;"></span><span class="mord"><span class="mord mathbb">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.849108em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">d</span></span></span></span></span></span></span></span></span></span></span> from a source of randomness, <em>e.g.</em>, a normal distribution <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="bold">z</mi><mo>∼</mo><mi mathvariant="script">N</mi><mo>(</mo><mn>0</mn><mo separator="true">,</mo><mn>1</mn><mo>)</mo></mrow><annotation encoding="application/x-tex">\mathbf z \sim \mathcal{N} (0, 1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.44444em;vertical-align:0em;"></span><span class="mord mathbf">z</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">∼</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.14736em;">N</span></span><span class="mopen">(</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span>. We often call <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="bold">z</mi></mrow><annotation encoding="application/x-tex">\mathbf z</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.44444em;vertical-align:0em;"></span><span class="mord mathbf">z</span></span></span></span> as the latent variable. It then applies a function to generate <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi mathvariant="bold">x</mi><mo mathvariant="normal">′</mo></msup><mo>=</mo><mi>G</mi><mo>(</mo><mi mathvariant="bold">z</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">\mathbf x&#x27;=G(\mathbf z)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathbf">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">G</span><span class="mopen">(</span><span class="mord mathbf">z</span><span class="mclose">)</span></span></span></span>. The goal of the generator is to fool the discriminator to classify <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi mathvariant="bold">x</mi><mo mathvariant="normal">′</mo></msup><mo>=</mo><mi>G</mi><mo>(</mo><mi mathvariant="bold">z</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">\mathbf x&#x27;=G(\mathbf z)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathbf">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">G</span><span class="mopen">(</span><span class="mord mathbf">z</span><span class="mclose">)</span></span></span></span> as true data, <em>i.e.</em>, we want <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>D</mi><mo>(</mo><mi>G</mi><mo>(</mo><mi mathvariant="bold">z</mi><mo>)</mo><mo>)</mo><mo>≈</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">D( G(\mathbf z)) \approx 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="mopen">(</span><span class="mord mathdefault">G</span><span class="mopen">(</span><span class="mord mathbf">z</span><span class="mclose">)</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>. In other words, for a given discriminator <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>D</mi></mrow><annotation encoding="application/x-tex">D</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">D</span></span></span></span>, we update the parameters of the generator <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi></mrow><annotation encoding="application/x-tex">G</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span></span></span></span> to maximize the cross-entropy loss when <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>y</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">y=0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span>, <em>i.e.</em>,</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><munder><mi>max</mi><mo>⁡</mo><mi>G</mi></munder><mo>{</mo><mo>−</mo><mo>(</mo><mn>1</mn><mo>−</mo><mi>y</mi><mo>)</mo><mi>log</mi><mo>⁡</mo><mo>(</mo><mn>1</mn><mo>−</mo><mi>D</mi><mo>(</mo><mi>G</mi><mo>(</mo><mi mathvariant="bold">z</mi><mo>)</mo><mo>)</mo><mo>)</mo><mo>}</mo><mo>=</mo><munder><mi>max</mi><mo>⁡</mo><mi>G</mi></munder><mo>{</mo><mo>−</mo><mi>log</mi><mo>⁡</mo><mo>(</mo><mn>1</mn><mo>−</mo><mi>D</mi><mo>(</mo><mi>G</mi><mo>(</mo><mi mathvariant="bold">z</mi><mo>)</mo><mo>)</mo><mo>)</mo><mo>}</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex"> \max_G \{ - (1-y) \log(1-D(G(\mathbf z))) \} = \max_G \{ - \log(1-D(G(\mathbf z))) \}.
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.494331em;vertical-align:-0.7443310000000001em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.43055999999999983em;"><span style="top:-2.055669em;margin-left:0em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">G</span></span></span><span style="top:-2.7em;"><span class="pstrut" style="height:2.7em;"></span><span><span class="mop">max</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7443310000000001em;"><span></span></span></span></span></span><span class="mopen">{</span><span class="mord">−</span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="mopen">(</span><span class="mord mathdefault">G</span><span class="mopen">(</span><span class="mord mathbf">z</span><span class="mclose">)</span><span class="mclose">)</span><span class="mclose">)</span><span class="mclose">}</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.494331em;vertical-align:-0.7443310000000001em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.43055999999999983em;"><span style="top:-2.055669em;margin-left:0em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">G</span></span></span><span style="top:-2.7em;"><span class="pstrut" style="height:2.7em;"></span><span><span class="mop">max</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7443310000000001em;"><span></span></span></span></span></span><span class="mopen">{</span><span class="mord">−</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="mopen">(</span><span class="mord mathdefault">G</span><span class="mopen">(</span><span class="mord mathbf">z</span><span class="mclose">)</span><span class="mclose">)</span><span class="mclose">)</span><span class="mclose">}</span><span class="mord">.</span></span></span></span></span></p>
+<p>  If the discriminator does a perfect job, then <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>D</mi><mo>(</mo><msup><mi mathvariant="bold">x</mi><mo mathvariant="normal">′</mo></msup><mo>)</mo><mo>≈</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">D(\mathbf x&#x27;)\approx 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.001892em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="mopen">(</span><span class="mord"><span class="mord mathbf">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> so the above loss near 0, which results the gradients are too small to make a good progress for the generator. So commonly we minimize the following loss:</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><munder><mi>min</mi><mo>⁡</mo><mi>G</mi></munder><mo>{</mo><mo>−</mo><mi>y</mi><mi>log</mi><mo>⁡</mo><mo>(</mo><mi>D</mi><mo>(</mo><mi>G</mi><mo>(</mo><mi mathvariant="bold">z</mi><mo>)</mo><mo>)</mo><mo>)</mo><mo>}</mo><mo>=</mo><munder><mi>min</mi><mo>⁡</mo><mi>G</mi></munder><mo>{</mo><mo>−</mo><mi>log</mi><mo>⁡</mo><mo>(</mo><mi>D</mi><mo>(</mo><mi>G</mi><mo>(</mo><mi mathvariant="bold">z</mi><mo>)</mo><mo>)</mo><mo>)</mo><mo>}</mo><mo separator="true">,</mo></mrow><annotation encoding="application/x-tex"> \min_G \{ - y \log(D(G(\mathbf z))) \} = \min_G \{ - \log(D(G(\mathbf z))) \}, 
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.4943309999999999em;vertical-align:-0.744331em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.66786em;"><span style="top:-2.055669em;margin-left:0em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">G</span></span></span><span style="top:-2.7em;"><span class="pstrut" style="height:2.7em;"></span><span><span class="mop">min</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.744331em;"><span></span></span></span></span></span><span class="mopen">{</span><span class="mord">−</span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="mopen">(</span><span class="mord mathdefault">G</span><span class="mopen">(</span><span class="mord mathbf">z</span><span class="mclose">)</span><span class="mclose">)</span><span class="mclose">)</span><span class="mclose">}</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.4943309999999999em;vertical-align:-0.744331em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.66786em;"><span style="top:-2.055669em;margin-left:0em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">G</span></span></span><span style="top:-2.7em;"><span class="pstrut" style="height:2.7em;"></span><span><span class="mop">min</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.744331em;"><span></span></span></span></span></span><span class="mopen">{</span><span class="mord">−</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="mopen">(</span><span class="mord mathdefault">G</span><span class="mopen">(</span><span class="mord mathbf">z</span><span class="mclose">)</span><span class="mclose">)</span><span class="mclose">)</span><span class="mclose">}</span><span class="mpunct">,</span></span></span></span></span></p>
+<p>  which is just feed <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi mathvariant="bold">x</mi><mo mathvariant="normal">′</mo></msup><mo>=</mo><mi>G</mi><mo>(</mo><mi mathvariant="bold">z</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">\mathbf x&#x27;=G(\mathbf z)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.751892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathbf">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">G</span><span class="mopen">(</span><span class="mord mathbf">z</span><span class="mclose">)</span></span></span></span> into the discriminator but giving label <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>y</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">y=1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>.</p>
+<p>  To sum up, <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>D</mi></mrow><annotation encoding="application/x-tex">D</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">D</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>G</mi></mrow><annotation encoding="application/x-tex">G</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault">G</span></span></span></span> are playing a &quot;minimax&quot; game with the comprehensive objective function:</p>
+<p class='katex-block'><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>m</mi><mi>i</mi><msub><mi>n</mi><mi>D</mi></msub><mi>m</mi><mi>a</mi><msub><mi>x</mi><mi>G</mi></msub><mo>{</mo><mo>−</mo><msub><mi>E</mi><mrow><mi>x</mi><mo>∼</mo><mtext>Data</mtext></mrow></msub><mi>l</mi><mi>o</mi><mi>g</mi><mi>D</mi><mo>(</mo><mi mathvariant="bold">x</mi><mo>)</mo><mo>−</mo><msub><mi>E</mi><mrow><mi>z</mi><mo>∼</mo><mtext>Noise</mtext></mrow></msub><mi>l</mi><mi>o</mi><mi>g</mi><mo>(</mo><mn>1</mn><mo>−</mo><mi>D</mi><mo>(</mo><mi>G</mi><mo>(</mo><mi mathvariant="bold">z</mi><mo>)</mo><mo>)</mo><mo>)</mo><mo>}</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">min_D max_G \{ -E_{x \sim \text{Data}} log D(\mathbf x) - E_{z \sim \text{Noise}} log(1 - D(G(\mathbf z))) \}.
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">m</span><span class="mord mathdefault">i</span><span class="mord"><span class="mord mathdefault">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">D</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathdefault">m</span><span class="mord mathdefault">a</span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">G</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">{</span><span class="mord">−</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">x</span><span class="mrel mtight">∼</span><span class="mord text mtight"><span class="mord mtight">Data</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault">o</span><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="mopen">(</span><span class="mord mathbf">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.32833099999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.04398em;">z</span><span class="mrel mtight">∼</span><span class="mord text mtight"><span class="mord mtight">Noise</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault">o</span><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="mopen">(</span><span class="mord mathdefault">G</span><span class="mopen">(</span><span class="mord mathbf">z</span><span class="mclose">)</span><span class="mclose">)</span><span class="mclose">)</span><span class="mclose">}</span><span class="mord">.</span></span></span></span></span></p>
+<p>  Many of the GANs applications are in the context of images. As a demonstration purpose, we are going to content ourselves with fitting a much simpler distribution first. We will illustrate what happens if we use GANs to build the world's most inefficient estimator of parameters for a Gaussian. Let's get started.</p>
+<pre><code class="language-Python">
+%matplotlib inline
+import matplotlib.pyplot as plt
+from torch.utils.data import DataLoader
+from torch import nn
+import numpy as np
+from torch.autograd import Variable
+import torch
+</code></pre>
+<h2 id="generate-some-real-data">Generate some &quot;real&quot; data</h2>
+<p>  Since this is going to be the world's lamest example, we simply generate data drawn from a Gaussian.</p>
+<pre><code class="language-Python">
+X=np.random.normal(size=(1000,2))
+A=np.array([[1,2],[-0.1,0.5]])
+b=np.array([1,2])
+data=X.dot(A)+b
+</code></pre>
+<p>  Let's see what we got. This should be a Gaussian shifted in some rather arbitrary way with mean <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault">b</span></span></span></span> and covariance matrix <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>A</mi><mi>T</mi></msup><mi>A</mi></mrow><annotation encoding="application/x-tex">A^TA</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413309999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">A</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413309999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.13889em;">T</span></span></span></span></span></span></span></span><span class="mord mathdefault">A</span></span></span></span>.</p>
+<pre><code class="language-Python">
+plt.figure(figsize=(3.5,2.5))
+plt.scatter(X[:100,0],X[:100,1],color='red')
+plt.show()
+plt.figure(figsize=(3.5,2.5))
+plt.scatter(data[:100,0],data[:100,1],color='blue')
+plt.show()
+print(&quot;The covariance matrix is\n%s&quot; % np.dot(A.T, A))
+</code></pre>
+<p><img src="https://Sandy1230.github.io/post-images/1582549956791.png" alt="" loading="lazy"><br>
+<img src="https://Sandy1230.github.io/post-images/1582549971139.png" alt="" loading="lazy"></p>
+<pre><code>The covariance matrix is
+[[1.01 1.95]
+[1.95 4.25]]
+</code></pre>
+<pre><code class="language-Python">
+batch_size=8
+data_iter=DataLoader(data,batch_size=batch_size)
+</code></pre>
+<h2 id="generator">Generator</h2>
+<p>  Our generator network will be the simplest network possible - a single layer linear model. This is since we will be driving that linear network with a Gaussian data generator. Hence, it literally only needs to learn the parameters to fake things perfectly.</p>
+<pre><code class="language-Python">
+class net_G(nn.Module):
+    def __init__(self):
+        super(net_G,self).__init__()
+        self.model=nn.Sequential(
+            nn.Linear(2,2),
+        )
+        self._initialize_weights()
+    def forward(self,x):
+        x=self.model(x)
+        return x
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m,nn.Linear):
+                m.weight.data.normal_(0,0.02)
+                m.bias.data.zero_()
+</code></pre>
+<h2 id="discriminator">Discriminator</h2>
+<p>  For the discriminator we will be a bit more discriminating: we will use an MLP with 3 layers to make things a bit more interesting.</p>
+<pre><code class="language-Python">
+class net_D(nn.Module):
+    def __init__(self):
+        super(net_D,self).__init__()
+        self.model=nn.Sequential(
+            nn.Linear(2,5),
+            nn.Tanh(),
+            nn.Linear(5,3),
+            nn.Tanh(),
+            nn.Linear(3,1),
+            nn.Sigmoid()
+        )
+        self._initialize_weights()
+    def forward(self,x):
+        x=self.model(x)
+        return x
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m,nn.Linear):
+                m.weight.data.normal_(0,0.02)
+                m.bias.data.zero_()
+</code></pre>
+<h2 id="training">Training</h2>
+<p>  First we define a function to update the discriminator.</p>
+<pre><code class="language-Python">
+# Saved in the d2l package for later use
+def update_D(X,Z,net_D,net_G,loss,trainer_D):
+    batch_size=X.shape[0]
+    Tensor=torch.FloatTensor
+    ones=Variable(Tensor(np.ones(batch_size))).view(batch_size,1)
+    zeros = Variable(Tensor(np.zeros(batch_size))).view(batch_size,1)
+    real_Y=net_D(X.float())
+    fake_X=net_G(Z)
+    fake_Y=net_D(fake_X)
+    loss_D=(loss(real_Y,ones)+loss(fake_Y,zeros))/2
+    loss_D.backward()
+    trainer_D.step()
+    return float(loss_D.sum())
+</code></pre>
+<p>  The generator is updated similarly. Here we reuse the cross-entropy loss but change the label of the fake data from <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>0</mn></mrow><annotation encoding="application/x-tex">0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span></span></span></span> to <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>1</mn></mrow><annotation encoding="application/x-tex">1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>.</p>
+<pre><code class="language-Python">
+# Saved in the d2l package for later use
+def update_G(Z,net_D,net_G,loss,trainer_G):
+    batch_size=Z.shape[0]
+    Tensor=torch.FloatTensor
+    ones=Variable(Tensor(np.ones((batch_size,)))).view(batch_size,1)
+    fake_X=net_G(Z)
+    fake_Y=net_D(fake_X)
+    loss_G=loss(fake_Y,ones)
+    loss_G.backward()
+    trainer_G.step()
+    return float(loss_G.sum())
+</code></pre>
+<p>  Both the discriminator and the generator performs a binary logistic regression with the cross-entropy loss. We use Adam to smooth the training process. In each iteration, we first update the discriminator and then the generator. We visualize both losses and generated examples.</p>
+<pre><code class="language-Python">
+def train(net_D,net_G,data_iter,num_epochs,lr_D,lr_G,latent_dim,data):
+    loss=nn.BCELoss()
+    Tensor=torch.FloatTensor
+    trainer_D=torch.optim.Adam(net_D.parameters(),lr=lr_D)
+    trainer_G=torch.optim.Adam(net_G.parameters(),lr=lr_G)
+    plt.figure(figsize=(7,4))
+    d_loss_point=[]
+    g_loss_point=[]
+    d_loss=0
+    g_loss=0
+    for epoch in range(1,num_epochs+1):
+        d_loss_sum=0
+        g_loss_sum=0
+        batch=0
+        for X in data_iter:
+            batch+=1
+            X=Variable(X)
+            batch_size=X.shape[0]
+            Z=Variable(Tensor(np.random.normal(0,1,(batch_size,latent_dim))))
+            trainer_D.zero_grad()
+            d_loss = update_D(X, Z, net_D, net_G, loss, trainer_D)
+            d_loss_sum+=d_loss
+            trainer_G.zero_grad()
+            g_loss = update_G(Z, net_D, net_G, loss, trainer_G)
+            g_loss_sum+=g_loss
+        d_loss_point.append(d_loss_sum/batch)
+        g_loss_point.append(g_loss_sum/batch)
+    plt.ylabel('Loss', fontdict={'size': 14})
+    plt.xlabel('epoch', fontdict={'size': 14})
+    plt.xticks(range(0,num_epochs+1,3))
+    plt.plot(range(1,num_epochs+1),d_loss_point,color='orange',label='discriminator')
+    plt.plot(range(1,num_epochs+1),g_loss_point,color='blue',label='generator')
+    plt.legend()
+    plt.show()
+    print(d_loss,g_loss)
+    
+    Z =Variable(Tensor( np.random.normal(0, 1, size=(100, latent_dim))))
+    fake_X=net_G(Z).detach().numpy()
+    plt.figure(figsize=(3.5,2.5))
+    plt.scatter(data[:,0],data[:,1],color='blue',label='real')
+    plt.scatter(fake_X[:,0],fake_X[:,1],color='orange',label='generated')
+    plt.legend()
+    plt.show()
+</code></pre>
+<p>  Now we specify the hyper-parameters to fit the Gaussian distribution.</p>
+<pre><code class="language-Python">
+if __name__ == '__main__':
+    lr_D,lr_G,latent_dim,num_epochs=0.05,0.005,2,20
+    generator=net_G()
+    discriminator=net_D()
+    train(discriminator,generator,data_iter,num_epochs,lr_D,lr_G,latent_dim,data)
+</code></pre>
+<p><img src="https://Sandy1230.github.io/post-images/1582550328825.png" alt="" loading="lazy"><br>
+<img src="https://Sandy1230.github.io/post-images/1582550340979.png" alt="" loading="lazy"></p>
+<h2 id="summary">Summary</h2>
+<ul>
+<li>Generative adversarial networks (GANs) composes of two deep networks, the generator and the discriminator.</li>
+<li>The generator generates the image as much closer to the true image as possible to fool the discriminator, via maximizing the cross-entropy loss, <em>i.e.</em>, <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>max</mi><mo>⁡</mo><mi>log</mi><mo>⁡</mo><mo>(</mo><mi>D</mi><mo>(</mo><msup><mi mathvariant="bold">x</mi><mo mathvariant="bold">′</mo></msup><mo>)</mo><mo>)</mo></mrow><annotation encoding="application/x-tex">\max \log(D(\mathbf{x&#x27;}))</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.001892em;vertical-align:-0.25em;"></span><span class="mop">max</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="mopen">(</span><span class="mord"><span class="mord"><span class="mord mathbf">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathbf mtight">′</span></span></span></span></span></span></span></span></span></span><span class="mclose">)</span><span class="mclose">)</span></span></span></span>.</li>
+<li>The discriminator tries to distinguish the generated images from the true images, via minimizing the cross-entropy loss, <em>i.e.</em>, <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>min</mi><mo>⁡</mo><mo>−</mo><mi>y</mi><mi>log</mi><mo>⁡</mo><mi>D</mi><mo>(</mo><mi mathvariant="bold">x</mi><mo>)</mo><mo>−</mo><mo>(</mo><mn>1</mn><mo>−</mo><mi>y</mi><mo>)</mo><mi>log</mi><mo>⁡</mo><mo>(</mo><mn>1</mn><mo>−</mo><mi>D</mi><mo>(</mo><mi mathvariant="bold">x</mi><mo>)</mo><mo>)</mo></mrow><annotation encoding="application/x-tex">\min - y \log D(\mathbf{x}) - (1-y)\log(1-D(\mathbf{x}))</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">min</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">−</span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="mopen">(</span><span class="mord"><span class="mord mathbf">x</span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="mopen">(</span><span class="mord"><span class="mord mathbf">x</span></span><span class="mclose">)</span><span class="mclose">)</span></span></span></span>.</li>
+<li>对损失函数的理解是理解生成对抗网络的关键。</li>
+</ul>
+<h2 id="exercises">Exercises</h2>
+<ul>
+<li>Does an equilibrium exist where the generator wins, <em>i.e.</em> the discriminator ends up unable to distinguish the two distributions on finite samples?</li>
+</ul>
+
+        </div>
+
+        
+
+
+        <div class="flex justify-between py-8">
+          
+            <div class="prev-post">
+              <a href="https://Sandy1230.github.io/post/dcgan/">
+                <h3 class="post-title">
+                  <i class="ri-arrow-left-line"></i>
+                  DCGAN
+                </h3>
+              </a>
+            </div>
+          
+
+          
+            <div class="next-post">
+              <a href="https://Sandy1230.github.io/post/tu-xiang-fen-lei/">
+                <h3 class="post-title">
+                  图像分类
+                  <i class="ri-arrow-right-line"></i>
+                </h3>
+              </a>
+            </div>
+          
+        </div>
+
+        
+          
+            <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+
+  var gitalk = new Gitalk({
+    clientID: '0d3d10ce467656a77373',
+    clientSecret: '9e7a9b05080f1d0b0ad2169b8254429cc20f22e2',
+    repo: 'Sandy1230.github.io',
+    owner: 'Sandy1230',
+    admin: ['Sandy1230'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+
+  gitalk.render('gitalk-container')
+
+</script>
+
+          
+
+          
+        
+
+      </div>
+    </div>
+
+    <script src="https://Sandy1230.github.io/media/prism.js"></script>  
+<script>
+
+Prism.highlightAll()
+let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+// This should probably be throttled.
+// Especially because it triggers during smooth scrolling.
+// https://lodash.com/docs/4.17.10#throttle
+// You could do like...
+// window.addEventListener("scroll", () => {
+//    _.throttle(doThatStuff, 100);
+// });
+// Only not doing it here to keep this Pen dependency-free.
+
+window.addEventListener("scroll", event => {
+  let fromTop = window.scrollY;
+
+  mainNavLinks.forEach((link, index) => {
+    let section = document.getElementById(decodeURI(link.hash).substring(1));
+    let nextSection = null
+    if (mainNavLinks[index + 1]) {
+      nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+    }
+    if (section.offsetTop <= fromTop) {
+      if (nextSection) {
+        if (nextSection.offsetTop > fromTop) {
+          link.classList.add("current");
+        } else {
+          link.classList.remove("current");    
+        }
+      } else {
+        link.classList.add("current");
+      }
+    } else {
+      link.classList.remove("current");
+    }
+  });
+});
+
+
+document.addEventListener("DOMContentLoaded", function() {
+  var lazyImages = [].slice.call(document.querySelectorAll(".post-feature-image.lazy"));
+
+  if ("IntersectionObserver" in window) {
+    let lazyImageObserver = new IntersectionObserver(function(entries, observer) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          let lazyImage = entry.target
+          lazyImage.style.backgroundImage = `url(${lazyImage.dataset.bg})`
+          lazyImage.classList.remove("lazy")
+          lazyImageObserver.unobserve(lazyImage)
+        }
+      });
+    });
+
+    lazyImages.forEach(function(lazyImage) {
+      lazyImageObserver.observe(lazyImage)
+    })
+  } else {
+    // Possibly fall back to a more compatible method here
+  }
+});
+
+const menuContainer = document.querySelector('.menu-container')
+const menus = document.querySelectorAll('.menu-container .menu')
+const mask = document.querySelector('.mask')
+const contentWrapper = document.querySelector('.content-wrapper')
+const latestArticle = document.querySelector('.latest-article')
+const readMore = document.querySelector('.read-more')
+const indexPage = document.querySelector('.index-page')
+
+const isHome = location.pathname === '/'
+if (latestArticle) {
+  latestArticle.style.display = isHome ? 'block' : 'none'
+  readMore.style.display = isHome ? 'block' : 'none'
+  indexPage.style.display = isHome ? 'none' : 'block'
+}
+
+const openMenu = () => {
+  menuContainer.classList.add('open')
+  menus.forEach(menu => {
+    menu.classList.add('animated', 'fadeInLeft')
+  })
+  mask.classList.add('open')
+  contentWrapper.classList.add('is-second')
+}
+
+const closeMenu = () => {
+  menuContainer.classList.remove('open')
+  menus.forEach(menu => {
+    menu.classList.remove('animated', 'fadeInLeft')
+  })
+  mask.classList.remove('open')
+  contentWrapper.classList.remove('is-second')
+}
+</script>
+  
+  </body>
+</html>
